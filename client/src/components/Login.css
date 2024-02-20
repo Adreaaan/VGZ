@@ -1,10 +1,4 @@
-.bg{
-    background-image: url(./logo.svg);
-    background-position: center center;
-    background-size: contain;
-    background-repeat: no-repeat;
-    height: 100vh;
-}
+
 #centered {
     height: 100vh; /* Magic here */
     justify-content: center;

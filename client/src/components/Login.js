@@ -62,10 +62,10 @@ function Login({ context }) {
     if (usuario.status === 201) {
       console.log("Usuario creado");
       setUser(true);
-      navigate("/marketplace");
+      navigate("/");
     } else {
       setUser(true);
-      navigate("/marketplace");
+      navigate("/");
     }
   };
 
@@ -83,7 +83,7 @@ function Login({ context }) {
     const usuario = await loginUser(newUser);
     if (usuario.status === 202) {
       setUser(true);
-      navigate("/marketplace");
+      navigate("/");
     } else {
       setMensaje("Usuario o la contraseña están mal.");
       setShow(true);
@@ -117,9 +117,7 @@ function Login({ context }) {
       <Row className="align-items-stretch">
         <Col className="bg d-none d-lg-block col-md-5 col-lg-5 col-xl-6 rounded"></Col>
         <Col className="p-5 rounded-end">
-          <div className="text-end">
-            <img src="/public/logo.png" width="48" alt="" />
-          </div>
+        
           <h2 className="fw-bold text-center py-5" style={{ color: "#20f299" }}>
             {login ? "Bienvenidos" : "Crea una nueva cuenta"}
           </h2>
