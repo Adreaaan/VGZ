@@ -1,0 +1,7 @@
+body {
+  min-height: 100vh;
+  background: #222225;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}

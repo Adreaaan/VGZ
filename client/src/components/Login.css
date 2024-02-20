@@ -1,0 +1,43 @@
+.bg{
+    background-image: url(./logo.svg);
+    background-position: center center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    height: 100vh;
+}
+#centered {
+    height: 100vh; /* Magic here */
+    justify-content: center;
+    align-items: center;
+  }
+
+/* Combina las clases de Bootstrap con tu clase personalizada */
+.container-with-bg.w-75 {
+    width: 75%;
+}
+
+.container-with-bg.rounded {
+    border-radius: 0.25rem; /* Puedes ajustar el radio según tus preferencias */
+}
+
+.container-with-bg.shadow {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Puedes ajustar la sombra según tus preferencias */
+}
+
+.container-with-bg.mt-3 {
+    margin-top: 1rem;
+}
+
+/* Aplica el nuevo color personalizado a los botones de Bootstrap */
+.btn-custom-color {
+    border-color: #20f299 !important;
+    color: #ffffff !important;
+}
+
+/* Estilos adicionales para hover o focus si lo deseas */
+.btn-custom-color:hover,
+.btn-custom-color:focus {
+    background-color: #20f299 !important; /* Puedes ajustar el color al hacer hover o focus */
+    border-color: #20f299 !important;
+    color: #ffffff !important;
+}
