@@ -1,0 +1,135 @@
+.widget {
+  background: var(--surface-color);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.widget h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+}
+
+.loading {
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 20px;
+}
+
+/* Trending Games */
+.trending-games {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.trending-game-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.trending-game-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.rank {
+  color: var(--secondary-color);
+  font-weight: 600;
+  font-size: 0.9rem;
+  width: 20px;
+}
+
+.trending-game-item img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.game-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.game-title {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.game-genre {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+/* Suggested Follows */
+.suggested-users {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.suggested-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+}
+
+.user-avatar-small {
+  width: 32px;
+  height: 32px;
+}
+
+.user-avatar-small img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-placeholder-small {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--secondary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.user-info-small {
+  flex: 1;
+}
+
+.username-small {
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.follow-btn {
+  background: var(--secondary-color);
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.follow-btn:hover {
+  background: var(--secondary-light);
+}
