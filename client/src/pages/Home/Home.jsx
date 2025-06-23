@@ -14,7 +14,6 @@ const Home = () => {
   useEffect(() => {
     fetchPosts();
   }, [activeTab]);
-
   const fetchPosts = async () => {
     try {
       setLoading(true);
@@ -28,17 +27,27 @@ const Home = () => {
       });
       
       const data = await response.json();
-      setPosts(data);
+      // Asegurarse de que data es un array
+      setPosts(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching posts:', error);
+      setPosts([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
   };
-
   const handleNewPost = (newPost) => {
-    setPosts(prevPosts => [newPost, ...prevPosts]);
+    setPosts(prevPosts => Array.isArray(prevPosts) ? [newPost, ...prevPosts] : [newPost]);
   };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const searchTerm = e.target.elements.search.value;
+    console.log('Buscando personas:', searchTerm);
+    // Aquí implementarías la lógica de búsqueda de personas
+  };
+
+  console.log('Home component rendering'); // Debug
 
   return (
     <div className="home-container">
@@ -46,7 +55,28 @@ const Home = () => {
       
       <main className="main-content">
         <div className="home-header">
-          <h1>Inicio</h1>
+          <div className="header-content">
+            <h1>Inicio</h1>
+            <form onSubmit={handleSearch} className="search-container">
+              <input
+                type="text"
+                name="search"
+                placeholder="Buscar personas..."
+                className="search-input"
+              />
+              <button type="submit" className="search-button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </form>
+          </div>
           <div className="home-tabs">
             <button 
               className={`tab ${activeTab === 'siguiendo' ? 'active' : ''}`}

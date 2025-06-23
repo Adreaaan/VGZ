@@ -4,12 +4,15 @@ const { Usuario } = require('../models');
 const auth = async (req, res, next) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
+    console.log('Auth middleware - Token recibido:', token ? 'Sí' : 'No'); // Debug
     
     if (!token) {
       return res.status(401).json({ mensaje: 'Acceso denegado. Token no proporcionado.' });
     }
     
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'tu_jwt_secret_muy_seguro_aqui');
+    console.log('Token decodificado - userId:', decoded.userId); // Debug
+    
     const usuario = await Usuario.findById(decoded.userId).select('-password');
     
     if (!usuario) {
@@ -22,8 +25,10 @@ const auth = async (req, res, next) => {
     
     req.userId = decoded.userId;
     req.usuario = usuario;
+    console.log('Auth exitoso para usuario:', usuario.username); // Debug
     next();
   } catch (error) {
+    console.error('Error en auth middleware:', error); // Debug
     if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({ mensaje: 'Token inválido.' });
     }

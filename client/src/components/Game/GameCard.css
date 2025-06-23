@@ -1,0 +1,137 @@
+.game-card {
+  background: #2d3748;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid #4a5568;
+}
+
+.game-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.game-image {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.game-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s ease;
+}
+
+.game-card:hover .game-image img {
+  transform: scale(1.05);
+}
+
+.game-genres {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  gap: 6px;
+}
+
+.genre-tag {
+  background: rgba(245, 101, 0, 0.9);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.game-info {
+  padding: 16px;
+}
+
+.game-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.main-rating {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.game-details p {
+  color: #a0aec0;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+
+.rating-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rating-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rating-label {
+  font-size: 0.75rem;
+  color: #a0aec0;
+  min-width: 110px;
+}
+
+.rating-bar {
+  flex: 1;
+  height: 6px;
+  background: #4a5568;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.rating-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.rating-fill.recommend {
+  background: #38a169;
+}
+
+.rating-fill.not-recommend {
+  background: #e53e3e;
+}
+
+.rating-fill.meh {
+  background: #a0aec0;
+}
+
+.rating-percentage {
+  font-size: 0.75rem;
+  color: #ffffff;
+  font-weight: 600;
+  min-width: 35px;
+  text-align: right;
+}
+
+@media (max-width: 480px) {
+  .game-info {
+    padding: 12px;
+  }
+  
+  .game-title {
+    font-size: 1rem;
+  }
+  
+  .rating-label {
+    min-width: 90px;
+    font-size: 0.7rem;
+  }
+}

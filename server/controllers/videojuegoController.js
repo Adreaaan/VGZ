@@ -34,20 +34,28 @@ const videojuegoController = {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 12;
       const skip = (page - 1) * limit;
-      const { genero, busqueda } = req.query;
+      const { genero, busqueda, sortBy = 'fechaLanzamiento', order = 'desc' } = req.query;
       
       let filtro = {};
+      let sortObj = {};
       
       if (genero) {
         filtro.generos = genero;
       }
       
       if (busqueda) {
-        filtro.$text = { $search: busqueda };
+        filtro.$or = [
+          { nombre: { $regex: busqueda, $options: 'i' } },
+          { desarrollador: { $regex: busqueda, $options: 'i' } },
+          { generos: { $regex: busqueda, $options: 'i' } }
+        ];
       }
       
+      // Configurar ordenamiento
+      sortObj[sortBy] = order === 'desc' ? -1 : 1;
+      
       const videojuegos = await Videojuego.find(filtro)
-        .sort({ fechaLanzamiento: -1 })
+        .sort(sortObj)
         .skip(skip)
         .limit(limit);
       
@@ -92,7 +100,9 @@ const videojuegoController = {
           { desarrollador: { $regex: q, $options: 'i' } },
           { generos: { $regex: q, $options: 'i' } }
         ]
-      }).limit(10);
+      })
+      .sort({ fechaLanzamiento: -1 })
+      .limit(10);
       
       res.json(videojuegos);
     } catch (error) {

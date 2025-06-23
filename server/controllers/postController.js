@@ -78,17 +78,26 @@ const postController = {
       res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
     }
   },
-
   // Obtener posts del feed
   obtenerFeed: async (req, res) => {
     try {
+      console.log('obtenerFeed - userId:', req.userId); // Debug
+      
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
       
       const usuario = await Usuario.findById(req.userId);
-      const usuariosSeguidos = usuario.siguiendo;
+      console.log('Usuario encontrado:', usuario ? usuario.username : 'No encontrado'); // Debug
+      
+      if (!usuario) {
+        return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+      }
+      
+      const usuariosSeguidos = [...usuario.siguiendo];
       usuariosSeguidos.push(req.userId); // Incluir posts propios
+      
+      console.log('Usuarios seguidos:', usuariosSeguidos.length); // Debug
       
       const posts = await Post.find({
         autor: { $in: usuariosSeguidos },
@@ -108,8 +117,44 @@ const postController = {
       .skip(skip)
       .limit(limit);
       
+      console.log('Posts encontrados:', posts.length); // Debug
       res.json(posts);
     } catch (error) {
+      console.error('Error en obtenerFeed:', error); // Debug
+      res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
+    }
+  },
+
+  // Obtener posts para explorar (todos los posts públicos)
+  obtenerExplorar: async (req, res) => {
+    try {
+      console.log('obtenerExplorar llamado'); // Debug
+      
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+      
+      const posts = await Post.find({
+        esPublico: true,
+        esComentario: false
+      })
+      .populate('autor', 'username avatar')
+      .populate('videojuego', 'nombre imagen')
+      .populate({
+        path: 'comentarios',
+        populate: {
+          path: 'autor',
+          select: 'username avatar'
+        }
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+      
+      console.log('Posts explorar encontrados:', posts.length); // Debug
+      res.json(posts);
+    } catch (error) {
+      console.error('Error en obtenerExplorar:', error); // Debug
       res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
     }
   },

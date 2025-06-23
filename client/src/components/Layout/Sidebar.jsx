@@ -8,7 +8,7 @@ const Sidebar = () => {
 
   const menuItems = [
     { icon: '🏠', label: 'Inicio', path: '/', key: 'home' },
-    { icon: '🔍', label: 'Explorar', path: '/explore', key: 'explore' },
+    { icon: '🎮', label: 'Juegos', path: '/games', key: 'games' },
     { icon: '🔔', label: 'Notificaciones', path: '/notifications', key: 'notifications' },
     { icon: '💬', label: 'Mensajes', path: '/messages', key: 'messages' },
     { icon: '📝', label: 'Mis Notas', path: '/notes', key: 'notes' },
@@ -20,6 +20,11 @@ const Sidebar = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     window.location.href = '/login';
+  };
+
+  // Debug: para ver si los clicks funcionan
+  const handleDebugClick = (path) => {
+    console.log('Navegando a:', path);
   };
 
   return (
@@ -41,6 +46,7 @@ const Sidebar = () => {
           <Link
             key={item.key}
             to={item.path}
+            onClick={() => handleDebugClick(item.path)}
             className={`menu-item ${location.pathname === item.path ? 'active' : ''}`}
           >
             <span className="menu-icon">{item.icon}</span>
