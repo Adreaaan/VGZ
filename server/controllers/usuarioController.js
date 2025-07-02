@@ -165,6 +165,53 @@ const usuarioController = {
     } catch (error) {
       res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
     }
+  },
+
+  // Buscar usuarios
+  buscarUsuarios: async (req, res) => {
+    try {
+      const { q } = req.query;
+      
+      if (!q || q.trim().length === 0) {
+        return res.json({ usuarios: [] });
+      }
+      
+      const searchTerm = q.trim();
+      
+      const usuarios = await Usuario.find({
+        $or: [
+          { username: { $regex: searchTerm, $options: 'i' } },
+          { email: { $regex: searchTerm, $options: 'i' } },
+          { bio: { $regex: searchTerm, $options: 'i' } }
+        ]
+      })
+      .select('username avatar bio email')
+      .limit(10);
+      
+      res.json({ usuarios });
+    } catch (error) {
+      res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
+    }
+  },
+
+  // Obtener usuarios sugeridos
+  obtenerUsuariosSugeridos: async (req, res) => {
+    try {
+      const usuarioActual = await Usuario.findById(req.userId);
+      
+      const usuarios = await Usuario.find({
+        _id: { 
+          $nin: [...usuarioActual.siguiendo, req.userId] 
+        },
+        activo: true
+      })
+      .select('username avatar bio')
+      .limit(5);
+      
+      res.json({ usuarios });
+    } catch (error) {
+      res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
+    }
   }
 };
 

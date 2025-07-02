@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Sidebar from '../../components/Layout/Sidebar';
 import GameCard from '../../components/Game/GameCard';
 import './Games.css';
@@ -7,11 +7,7 @@ const Games = () => {
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchGames();
-  }, []);
-
-  const fetchGames = async () => {
+  const fetchGames = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
@@ -30,6 +26,46 @@ const Games = () => {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    fetchGames();
+  }, [fetchGames]);
+
+  const memoizedGames = useMemo(() => games, [games]);
+
+  const renderGameCard = useCallback((game) => (
+    <GameCard 
+      key={game._id} 
+      game={game}
+    />
+  ), []);
+
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Cargando juegos...</p>
+        </div>
+      );
+    }
+
+    if (memoizedGames.length === 0) {
+      return (
+        <div className="empty-games">
+          <div className="empty-icon">🎮</div>
+          <h3>No hay juegos disponibles</h3>
+          <p>No se encontraron juegos</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="games-grid">
+        {memoizedGames.map(renderGameCard)}
+      </div>
+    );
   };
 
   return (
@@ -46,30 +82,10 @@ const Games = () => {
           <h1>Juegos</h1>
         </div>
 
-        <div className="games-grid">
-          {loading ? (
-            <div className="loading-container">
-              <div className="loading-spinner"></div>
-              <p>Cargando juegos...</p>
-            </div>
-          ) : games.length === 0 ? (
-            <div className="empty-games">
-              <div className="empty-icon">🎮</div>
-              <h3>No hay juegos disponibles</h3>
-              <p>No se encontraron juegos</p>
-            </div>
-          ) : (
-            games.map(game => (
-              <GameCard 
-                key={game._id} 
-                game={game}
-              />
-            ))
-          )}
-        </div>
+        {renderContent()}
       </main>
     </div>
   );
 };
 
-export default Games;
+export default React.memo(Games);

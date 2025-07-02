@@ -214,18 +214,26 @@ const postController = {
   // Eliminar post
   eliminarPost: async (req, res) => {
     try {
+      console.log('Eliminando post ID:', req.params.id); // Debug
+      console.log('Usuario ID:', req.userId); // Debug
+      
       const post = await Post.findById(req.params.id);
       if (!post) {
         return res.status(404).json({ mensaje: 'Post no encontrado' });
       }
+      
+      console.log('Post autor:', post.autor.toString()); // Debug
+      console.log('Usuario actual:', req.userId); // Debug
       
       if (post.autor.toString() !== req.userId) {
         return res.status(403).json({ mensaje: 'No tienes permisos para eliminar este post' });
       }
       
       await Post.findByIdAndDelete(req.params.id);
+      console.log('Post eliminado exitosamente'); // Debug
       res.json({ mensaje: 'Post eliminado exitosamente' });
     } catch (error) {
+      console.error('Error eliminando post:', error); // Debug
       res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
     }
   }

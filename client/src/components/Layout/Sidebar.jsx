@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './Sidebar.css';
 
 const Sidebar = () => {
   const location = useLocation();
-  const [user] = useState(JSON.parse(localStorage.getItem('user') || '{}'));
+  const [user] = useState(() => JSON.parse(localStorage.getItem('user') || '{}'));
 
-  const menuItems = [
+  const menuItems = useMemo(() => [
     { icon: '🏠', label: 'Inicio', path: '/', key: 'home' },
     { icon: '🎮', label: 'Juegos', path: '/games', key: 'games' },
     { icon: '🔔', label: 'Notificaciones', path: '/notifications', key: 'notifications' },
@@ -14,49 +14,37 @@ const Sidebar = () => {
     { icon: '📝', label: 'Mis Notas', path: '/notes', key: 'notes' },
     { icon: '👤', label: 'Perfil', path: `/profile/${user.id}`, key: 'profile' },
     { icon: '⚙️', label: 'Configuración', path: '/settings', key: 'settings' }
-  ];
+  ], [user.id]);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     window.location.href = '/login';
-  };
+  }, []);
 
-  // Debug: para ver si los clicks funcionan
-  const handleDebugClick = (path) => {
-    console.log('Navegando a:', path);
-  };
+  const renderMenuItem = useCallback((item) => (
+    <Link
+      key={item.key}
+      to={item.path}
+      className={`menu-item ${location.pathname === item.path ? 'active' : ''}`}
+    >
+      <span className="menu-icon">{item.icon}</span>
+      <span className="menu-label">{item.label}</span>
+    </Link>
+  ), [location.pathname]);
 
   return (
     <nav className="sidebar">
       <div className="sidebar-header">
-        <Link to="/" className="brand-link">
-          <div className="brand-icon">
-            <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
-              <path d="M20 4L36 20L20 36L4 20L20 4Z" fill="currentColor"/>
-              <circle cx="20" cy="20" r="8" fill="white"/>
-            </svg>
-          </div>
-          <span className="brand-text">VGZ</span>
-        </Link>
+        <h2>VGZ</h2>
       </div>
-
+      
       <div className="sidebar-menu">
-        {menuItems.map(item => (
-          <Link
-            key={item.key}
-            to={item.path}
-            onClick={() => handleDebugClick(item.path)}
-            className={`menu-item ${location.pathname === item.path ? 'active' : ''}`}
-          >
-            <span className="menu-icon">{item.icon}</span>
-            <span className="menu-label">{item.label}</span>
-          </Link>
-        ))}
+        {menuItems.map(renderMenuItem)}
       </div>
 
       <div className="sidebar-footer">
-        <div className="user-info">
+        <div className="user-profile">
           <div className="user-avatar">
             {user.avatar ? (
               <img src={user.avatar} alt={user.username} />
@@ -69,13 +57,13 @@ const Sidebar = () => {
           <div className="user-details">
             <div className="username">@{user.username}</div>
           </div>
-          <button className="logout-btn" onClick={handleLogout} title="Cerrar sesión">
-            🚪
-          </button>
         </div>
+        <button onClick={handleLogout} className="logout-btn">
+          Cerrar Sesión
+        </button>
       </div>
     </nav>
   );
 };
 
-export default Sidebar;
+export default React.memo(Sidebar);

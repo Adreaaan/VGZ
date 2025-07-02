@@ -121,6 +121,57 @@
   text-align: right;
 }
 
+/* Post card variant */
+.game-card-post {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(45, 55, 72, 0.8);
+  border-radius: 12px;
+  border: 1px solid #4a5568;
+  margin: 12px 0;
+}
+
+.game-image-post {
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.game-image-post img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.game-info-post {
+  flex: 1;
+  min-width: 0;
+}
+
+.game-title-post {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 6px 0;
+  line-height: 1.3;
+}
+
+.user-rating-post {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.main-rating-post {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 @media (max-width: 480px) {
   .game-info {
     padding: 12px;
