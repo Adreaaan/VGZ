@@ -14,7 +14,8 @@
     "populate-posts": "node scripts/populatePosts.js",
     "create-test-posts": "node scripts/createTestPosts.js",
     "populate-real-games": "node scripts/populateRealGames.js",
-    "create-game-posts": "node scripts/createPostsForGames.js"
+    "create-game-posts": "node scripts/createPostsForGames.js",
+    "seed:videojuegos": "node seeds/videojuegos.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import './Widgets.css';
+import React, { useState, useEffect, useCallback } from 'react';
+import './TrendingGames.css'; // Assuming you have a CSS file for styling
 
-const TrendingGames = () => {
+const TrendingGames = ({ onGameClick }) => {
   const [trendingGames, setTrendingGames] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,6 +25,34 @@ const TrendingGames = () => {
     }
   };
 
+  const handleGameClick = useCallback((e, game) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onGameClick) {
+      onGameClick(game);
+    }
+  }, [onGameClick]);
+
+  const renderGameItem = useCallback((game, index) => (
+    <div 
+      key={game._id} 
+      className="trending-game"
+      onClick={(e) => handleGameClick(e, game)}
+      style={{ cursor: 'pointer' }}
+    >
+      <span className="trending-rank">#{index + 1}</span>
+      <img 
+        src={game.imagen} 
+        alt={game.nombre} 
+        className="trending-game-image"
+        style={{ width: '32px', height: '32px', objectFit: 'cover', borderRadius: '4px' }}
+      />
+      <div className="trending-game-info">
+        <h4>{game.nombre}</h4>
+      </div>
+    </div>
+  ), [handleGameClick]);
+
   if (loading) {
     return (
       <div className="widget">
@@ -38,19 +66,13 @@ const TrendingGames = () => {
     <div className="widget">
       <h3>Juegos en tendencia</h3>
       <div className="trending-games">
-        {trendingGames.map((game, index) => (
-          <div key={game._id} className="trending-game-item">
-            <span className="rank">#{index + 1}</span>
-            <img src={game.imagen || '/placeholder-game.jpg'} alt={game.nombre} />
-            <div className="game-details">
-              <span className="game-title">{game.nombre}</span>
-              <span className="game-genre">{game.generos[0]}</span>
-            </div>
-          </div>
-        ))}
+        <div className="trending-games-list">
+          {trendingGames.map(renderGameItem)}
+        </div>
       </div>
     </div>
   );
 };
+
 
 export default TrendingGames;

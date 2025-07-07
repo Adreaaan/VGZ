@@ -1,9 +1,9 @@
 .widget {
-  background: #2d3748;
+  background: #15202b;
   border-radius: 16px;
   padding: 20px;
   margin-bottom: 20px;
-  border: 1px solid #4a5568;
+  border: 1px solid #2f3336;
 }
 
 .widget h3 {
@@ -39,7 +39,7 @@
   width: 100%;
   padding: 12px 16px;
   padding-right: 44px;
-  background: #1a2332;
+  background: #15202b;
   border: 1px solid #4a5568;
   border-radius: 8px;
   color: #ffffff;

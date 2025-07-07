@@ -1,12 +1,17 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Sidebar from '../../components/Layout/Sidebar';
 import PostCard from '../../components/Post/PostCard';
 import CreatePost from '../../components/Post/CreatePost';
 import TrendingGames from '../../components/Widgets/TrendingGames';
 import SuggestedFollows from '../../components/Widgets/SuggestedFollows';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
-import { useApi } from '../../hooks/useApi';
 import { useToggle } from '../../hooks/useToggle';
+import { useApi } from '../../hooks/useApi';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
+import PostDetailModal from '../../components/Post/PostDetailModal';
+import ReplyModal from '../../components/Post/ReplyModal';
+import GameDetailModal from '../../components/Game/GameDetailModal';
+import { useModalStack } from '../../hooks/useModalStack';
 import './Home.css';
 
 const Home = () => {
@@ -15,32 +20,72 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [followingUsers, setFollowingUsers] = useState(new Set());
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [showSearchResults, toggleSearchResults, , hideSearchResults] = useToggle(false);
   const { loading: postsLoading, apiCall } = useApi();
+  const { replaceModal, closeModal, currentModal } = useModalStack();
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [showPostDetail, setShowPostDetail] = useState(false);
+  const [showReplyModal, setShowReplyModal] = useState(false);
+  const [replyingOnPost, setReplyingOnPost] = useState(null);
+  const [showGameDetail, setShowGameDetail] = useState(false);
+  const [selectedGame, setSelectedGame] = useState(null);
+  
 
-  const fetchPosts = useCallback(async () => {
+  const fetchPosts = useCallback(async (pageNum = 1, append = false) => {
     try {
       const endpoint = activeTab === 'siguiendo' ? '/api/posts/feed' : '/api/posts/explore';
-      const data = await apiCall(endpoint);
-      setPosts(data || []);
+      const data = await apiCall(`${endpoint}?page=${pageNum}&limit=10`);
+      
+      if (append) {
+        setPosts(prev => [...prev, ...(data || [])]);
+      } else {
+        setPosts(data || []);
+      }
+      
+      setHasMore((data || []).length === 10);
+      setPage(pageNum);
     } catch (error) {
       console.error('Error fetching posts:', error);
-      setPosts([]);
+      if (!append) setPosts([]);
     }
   }, [activeTab, apiCall]);
 
+  const fetchMorePosts = useCallback(async () => {
+    if (!hasMore || postsLoading) return;
+    await fetchPosts(page + 1, true);
+  }, [fetchPosts, page, hasMore, postsLoading]);
+
+  const [isFetchingMore] = useInfiniteScroll(fetchMorePosts);
+
   useEffect(() => {
-    fetchPosts();
+    fetchPosts(1, false);
+    setPage(1);
+    setHasMore(true);
+  }, [activeTab, fetchPosts]);
+
+  const handleTabChange = useCallback((tab) => {
+    if (activeTab === tab) {
+      // Double click - reload posts
+      fetchPosts(1, false);
+      setPage(1);
+      setHasMore(true);
+      window.scrollTo(0, 0);
+    } else {
+      setActiveTab(tab);
+    }
+  }, [activeTab, fetchPosts]);
+
+  const handlePostUpdate = useCallback(() => {
+    fetchPosts(1, false);
+    setPage(1);
+    setHasMore(true);
   }, [fetchPosts]);
 
-  const handleNewPost = (newPost) => {
-    setPosts(prevPosts => Array.isArray(prevPosts) ? [newPost, ...prevPosts] : [newPost]);
-  };
-
-  const handleSearch = async (e) => {
+  const handleSearch = useCallback(async (e) => {
     e.preventDefault();
     const searchValue = e.target.elements.search.value.trim();
-    
     
     if (!searchValue) {
       hideSearchResults();
@@ -48,76 +93,55 @@ const Home = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const url = `/api/usuarios/buscar?q=${encodeURIComponent(searchValue)}`;
-      
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
+      const data = await apiCall(`/api/usuarios/buscar?q=${encodeURIComponent(searchValue)}`);
       setSearchResults(data.usuarios || []);
       toggleSearchResults();
     } catch (error) {
       console.error('Error buscando usuarios:', error);
       setSearchResults([]);
-      toggleSearchResults();
     }
-  };
+  }, [apiCall, hideSearchResults, toggleSearchResults]);
 
-  const handleSearchInputChange = (e) => {
+  const handleSearchInputChange = useCallback((e) => {
     const value = e.target.value;
     setSearchTerm(value);
     
     if (!value.trim()) {
       hideSearchResults();
     }
-  };
+  }, [hideSearchResults]);
 
-  const closeSearch = () => {
+  const closeSearch = useCallback(() => {
     hideSearchResults();
     setSearchTerm('');
-  };
+  }, [hideSearchResults]);
 
-  const handleFollowUser = async (userId) => {
+  const handleFollowUser = useCallback(async (userId) => {
     try {
-      const token = localStorage.getItem('token');
       const isFollowing = followingUsers.has(userId);
       
-      const response = await fetch(`/api/usuarios/${userId}/seguir`, {
-        method: isFollowing ? 'DELETE' : 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      await apiCall(`/api/usuarios/${userId}/seguir`, {
+        method: isFollowing ? 'DELETE' : 'POST'
       });
 
-      if (response.ok) {
-        const newFollowingUsers = new Set(followingUsers);
-        if (isFollowing) {
-          newFollowingUsers.delete(userId);
-        } else {
-          newFollowingUsers.add(userId);
-        }
-        setFollowingUsers(newFollowingUsers);
-        
-        // Recargar feed si estamos en la pestaña "siguiendo"
-        if (activeTab === 'siguiendo') {
-          fetchPosts();
-        }
+      const newFollowingUsers = new Set(followingUsers);
+      if (isFollowing) {
+        newFollowingUsers.delete(userId);
+      } else {
+        newFollowingUsers.add(userId);
+      }
+      setFollowingUsers(newFollowingUsers);
+      
+      // Recargar feed si estamos en la pestaña "siguiendo"
+      if (activeTab === 'siguiendo') {
+        fetchPosts(1, false);
       }
     } catch (error) {
       console.error('Error al seguir/dejar de seguir usuario:', error);
     }
-  };
+  }, [followingUsers, apiCall, activeTab, fetchPosts]);
 
-  const handleUserFollowed = (userId, isNowFollowing) => {
+  const handleUserFollowed = useCallback((userId, isNowFollowing) => {
     // Actualizar el estado local de usuarios seguidos
     const newFollowingUsers = new Set(followingUsers);
     if (isNowFollowing) {
@@ -129,18 +153,120 @@ const Home = () => {
     
     // Recargar feed si estamos en la pestaña "siguiendo"
     if (activeTab === 'siguiendo') {
-      fetchPosts();
+      fetchPosts(1, false);
     }
-  };
+  }, [followingUsers, activeTab, fetchPosts]);
 
-  const memoizedPosts = useMemo(() => posts, [posts]);
+  const handleCommentClick = useCallback(async (post) => {
+    try {
+      // Fetch fresh data for the clicked post
+      const response = await fetch(`/api/posts/${post._id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const freshPost = await response.json();
+        setSelectedPost(freshPost);
+        setShowPostDetail(true);
+      }
+    } catch (error) {
+      console.error('Error fetching post details:', error);
+      // Fallback to cached data
+      setSelectedPost(post);
+      setShowPostDetail(true);
+    }
+  }, []);
 
-  const handlePostUpdate = useCallback(() => {
-    fetchPosts();
+  const handleClosePostDetail = useCallback(() => {
+    setShowPostDetail(false);
+    setSelectedPost(null);
+    // Refresh the main posts feed
+    fetchPosts(1, false);
+    setPage(1);
+    setHasMore(true);
   }, [fetchPosts]);
 
+  const handleReplyClick = useCallback((post) => {
+    console.log('Reply button clicked for post:', post._id); // Debug
+    setReplyingOnPost(post);
+    setShowReplyModal(true);
+  }, []);
+
+  const handleCloseReplyModal = useCallback(() => {
+    setShowReplyModal(false);
+    setReplyingOnPost(null);
+  }, []);
+
+  const handleReplySubmit = useCallback(async (replyText) => {
+    if (!replyingOnPost) {
+      console.error('No post to reply to');
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          contenido: replyText,
+          videojuego: replyingOnPost.videojuego._id,
+          esComentario: true,
+          postPadre: replyingOnPost._id,
+          esPublico: replyingOnPost.esPublico
+        })
+      });
+
+      if (response.ok) {
+        // Close the reply modal first
+        setShowReplyModal(false);
+        setReplyingOnPost(null);
+        
+        // Refresh the popup if it's open
+        if (showPostDetail && selectedPost && selectedPost._id === replyingOnPost._id) {
+          const freshResponse = await fetch(`/api/posts/${replyingOnPost._id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+          
+          if (freshResponse.ok) {
+            const freshPost = await freshResponse.json();
+            setSelectedPost(freshPost);
+          }
+        }
+        
+        // Refresh posts feed
+        fetchPosts(1, false);
+        setPage(1);
+        setHasMore(true);
+      } else {
+        throw new Error('Failed to create reply');
+      }
+    } catch (error) {
+      console.error('Error creating comment:', error);
+      throw error;
+    }
+  }, [replyingOnPost, fetchPosts, showPostDetail, selectedPost]);
+
+  const handleGameClick = useCallback((game) => {
+    console.log('handleGameClick called with:', game.nombre); // Debug
+    setSelectedGame(game);
+    setShowGameDetail(true);
+  }, []);
+
+  const handleCloseGameDetail = useCallback(() => {
+    setShowGameDetail(false);
+    setSelectedGame(null);
+  }, []);
+
   const renderContent = () => {
-    if (postsLoading) {
+    if (postsLoading && posts.length === 0) {
       return (
         <div className="loading-container">
           <LoadingSpinner size="large" />
@@ -149,7 +275,7 @@ const Home = () => {
       );
     }
 
-    if (memoizedPosts.length === 0) {
+    if (posts.length === 0) {
       return (
         <div className="empty-feed">
           <div className="empty-icon">🎮</div>
@@ -164,13 +290,23 @@ const Home = () => {
       );
     }
 
-    return memoizedPosts.map(post => (
-      <PostCard 
-        key={post._id} 
-        post={post}
-        onUpdate={handlePostUpdate}
-      />
-    ));
+    return (
+      <>
+        <div className="posts-container">
+          {posts.map(post => (
+            <PostCard 
+              key={post._id} 
+              post={post}
+              onUpdate={handlePostUpdate}
+              onCommentClick={handleCommentClick}
+              onReplyClick={handleReplyClick}
+              onGameClick={handleGameClick}
+            />
+          ))}
+        </div>
+
+      </>
+    );
   };
 
   return (
@@ -243,35 +379,63 @@ const Home = () => {
               )}
             </div>
           </div>
+          
           <div className="home-tabs">
             <button 
               className={`tab ${activeTab === 'siguiendo' ? 'active' : ''}`}
-              onClick={() => setActiveTab('siguiendo')}
+              onClick={() => handleTabChange('siguiendo')}
             >
               Siguiendo
             </button>
             <button 
               className={`tab ${activeTab === 'explorar' ? 'active' : ''}`}
-              onClick={() => setActiveTab('explorar')}
+              onClick={() => handleTabChange('explorar')}
             >
               Explorar
             </button>
           </div>
         </div>
 
-        <CreatePost onPostCreated={handleNewPost} />
-
-        <div className="posts-container">
-          {renderContent()}
-        </div>
+        <CreatePost onPostCreated={handlePostUpdate} />
+        
+        {renderContent()}
       </main>
 
       <aside className="right-sidebar">
-        <TrendingGames />
+        <TrendingGames onGameClick={handleGameClick} />
         <SuggestedFollows onUserFollowed={handleUserFollowed} />
       </aside>
+
+
+      <ReplyModal
+        isOpen={showReplyModal}
+        onClose={handleCloseReplyModal}
+        post={replyingOnPost}
+        onReplySubmit={handleReplySubmit}
+        onGameClick={handleGameClick}
+      />
+
+      <PostDetailModal
+        isOpen={showPostDetail}
+        onClose={handleClosePostDetail}
+        post={selectedPost}
+        onCommentClick={handleCommentClick}
+        onReplyClick={handleReplyClick}
+        onGameClick={handleGameClick}
+      />
+
+      <GameDetailModal
+        isOpen={showGameDetail}
+        onClose={handleCloseGameDetail}
+        game={selectedGame}
+      />
+
+
     </div>
   );
 };
 
+
 export default React.memo(Home);
+
+

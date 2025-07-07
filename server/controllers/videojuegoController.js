@@ -1,4 +1,5 @@
-const { Videojuego } = require('../models');
+const Videojuego = require('../models/Videojuego');
+const Post = require('../models/Post');
 
 const videojuegoController = {
   // Crear nuevo videojuego
@@ -28,46 +29,153 @@ const videojuegoController = {
     }
   },
 
-  // Obtener todos los videojuegos
+  // Obtener géneros únicos
+  obtenerGeneros: async (req, res) => {
+    try {
+      console.log('Fetching genres...'); // Debug
+      
+      // Primero verificar si hay videojuegos
+      const totalVideojuegos = await Videojuego.countDocuments();
+      console.log('Total videojuegos:', totalVideojuegos);
+      
+      if (totalVideojuegos === 0) {
+        return res.json([]);
+      }
+      
+      // Obtener una muestra para ver la estructura
+      const sampleVideojuego = await Videojuego.findOne();
+      console.log('Sample videojuego structure:', JSON.stringify(sampleVideojuego, null, 2));
+      
+      // Intentar usar agregación para extraer géneros
+      const genresAggregation = await Videojuego.aggregate([
+        { $unwind: "$generos" },
+        { $group: { _id: "$generos" } },
+        { $sort: { _id: 1 } }
+      ]);
+      
+      console.log('Genres aggregation result:', genresAggregation);
+      
+      const uniqueGenres = genresAggregation.map(item => item._id).filter(genre => genre && genre.trim() !== '');
+      console.log('Final unique genres:', uniqueGenres);
+      
+      res.json(uniqueGenres);
+    } catch (error) {
+      console.error('Error fetching genres:', error);
+      res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
+    }
+  },
+
+  // Obtener desarrolladores únicos
+  obtenerDesarrolladores: async (req, res) => {
+    try {
+      console.log('Fetching developers...'); // Debug
+      const developers = await Videojuego.distinct('desarrollador');
+      console.log('Raw developers:', developers); // Debug
+      const filteredDevelopers = developers.filter(dev => dev && dev.trim() !== '');
+      console.log('Filtered developers:', filteredDevelopers); // Debug
+      res.json(filteredDevelopers.sort());
+    } catch (error) {
+      console.error('Error fetching developers:', error);
+      res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
+    }
+  },
+
+  // Obtener videojuegos con filtros
   obtenerVideojuegos: async (req, res) => {
     try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 12;
-      const skip = (page - 1) * limit;
-      const { genero, busqueda, sortBy = 'fechaLanzamiento', order = 'desc' } = req.query;
+      const { page = 1, limit = 20, sortBy = 'fechaLanzamiento', order = 'desc', genre, developer } = req.query;
       
-      let filtro = {};
-      let sortObj = {};
+      console.log('Query params:', { page, limit, sortBy, order, genre, developer });
       
-      if (genero) {
-        filtro.generos = genero;
+      const query = {};
+      if (genre && genre !== '') {
+        query.generos = { $in: [new RegExp(genre, 'i')] };
+      }
+      if (developer && developer !== '') {
+        query.desarrollador = { $regex: new RegExp(developer, 'i') };
       }
       
-      if (busqueda) {
-        filtro.$or = [
-          { nombre: { $regex: busqueda, $options: 'i' } },
-          { desarrollador: { $regex: busqueda, $options: 'i' } },
-          { generos: { $regex: busqueda, $options: 'i' } }
-        ];
+      console.log('MongoDB query:', query);
+      
+      const videojuegos = await Videojuego.find(query)
+        .sort({ [sortBy]: order === 'desc' ? -1 : 1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit);
+      
+      console.log('Found videojuegos:', videojuegos.length);
+      
+      if (videojuegos.length === 0) {
+        // Si no hay videojuegos, devolver respuesta vacía pero válida
+        return res.json({
+          videojuegos: [],
+          totalPages: 0,
+          currentPage: page,
+          total: 0
+        });
       }
       
-      // Configurar ordenamiento
-      sortObj[sortBy] = order === 'desc' ? -1 : 1;
+      // Calcular valoraciones reales basadas en posts
+      const videojuegosConValoraciones = await Promise.all(
+        videojuegos.map(async (videojuego) => {
+          try {
+            const valoracionesReales = await Post.aggregate([
+              {
+                $match: {
+                  videojuego: videojuego._id,
+                  valoracionJuego: { $exists: true, $ne: null }
+                }
+              },
+              {
+                $group: {
+                  _id: '$valoracionJuego',
+                  count: { $sum: 1 }
+                }
+              }
+            ]);
+            
+            const valoraciones = {
+              loRecomiendo: 0,
+              noLoRecomiendo: 0,
+              meh: 0
+            };
+            
+            valoracionesReales.forEach(valoracion => {
+              if (valoracion._id === 'lo_recomiendo') {
+                valoraciones.loRecomiendo = valoracion.count;
+              } else if (valoracion._id === 'no_lo_recomiendo') {
+                valoraciones.noLoRecomiendo = valoracion.count;
+              } else if (valoracion._id === 'meh') {
+                valoraciones.meh = valoracion.count;
+              }
+            });
+            
+            return {
+              ...videojuego.toObject(),
+              valoraciones
+            };
+          } catch (aggregationError) {
+            console.error('Error en agregación para videojuego:', videojuego._id, aggregationError);
+            // Si falla la agregación, devolver el videojuego con valoraciones vacías
+            return {
+              ...videojuego.toObject(),
+              valoraciones: { loRecomiendo: 0, noLoRecomiendo: 0, meh: 0 }
+            };
+          }
+        })
+      );
       
-      const videojuegos = await Videojuego.find(filtro)
-        .sort(sortObj)
-        .skip(skip)
-        .limit(limit);
+      const total = await Videojuego.countDocuments(query);
       
-      const total = await Videojuego.countDocuments(filtro);
+      console.log('Returning videojuegos:', videojuegosConValoraciones.length);
       
       res.json({
-        videojuegos,
-        totalPaginas: Math.ceil(total / limit),
-        paginaActual: page,
+        videojuegos: videojuegosConValoraciones,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
         total
       });
     } catch (error) {
+      console.error('Error in obtenerVideojuegos:', error);
       res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
     }
   },
@@ -76,11 +184,47 @@ const videojuegoController = {
   obtenerVideojuegoPorId: async (req, res) => {
     try {
       const videojuego = await Videojuego.findById(req.params.id);
+      
       if (!videojuego) {
         return res.status(404).json({ mensaje: 'Videojuego no encontrado' });
       }
+
+      // Calcular valoraciones reales basadas en posts
+      const valoracionesReales = await Post.aggregate([
+        {
+          $match: {
+            videojuego: videojuego._id,
+            valoracionJuego: { $exists: true, $ne: null }
+          }
+        },
+        {
+          $group: {
+            _id: '$valoracionJuego',
+            count: { $sum: 1 }
+          }
+        }
+      ]);
       
-      res.json(videojuego);
+      const valoraciones = {
+        loRecomiendo: 0,
+        noLoRecomiendo: 0,
+        meh: 0
+      };
+      
+      valoracionesReales.forEach(valoracion => {
+        if (valoracion._id === 'lo_recomiendo') {
+          valoraciones.loRecomiendo = valoracion.count;
+        } else if (valoracion._id === 'no_lo_recomiendo') {
+          valoraciones.noLoRecomiendo = valoracion.count;
+        } else if (valoracion._id === 'meh') {
+          valoraciones.meh = valoracion.count;
+        }
+      });
+      
+      res.json({
+        ...videojuego.toObject(),
+        valoraciones
+      });
     } catch (error) {
       res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
     }

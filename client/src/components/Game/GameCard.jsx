@@ -1,13 +1,13 @@
 import React, { useMemo, useCallback } from 'react';
 import './GameCard.css';
 
-const GameCard = ({ game, userRating, showAsPostCard = false }) => {
+const GameCard = ({ game, userRating, showAsPostCard = false, onGameClick }) => {
   
   const mainRating = useMemo(() => {
     const { loRecomiendo, noLoRecomiendo, meh } = game.valoraciones || {};
     const total = (loRecomiendo || 0) + (noLoRecomiendo || 0) + (meh || 0);
     
-    if (total === 0) return { type: 'Sin valoraciones', percentage: 0, color: '#a0aec0' };
+    if (total === 0) return { type: 'Sin valoraciones', percentage: 0, color: '#a0aec0', total: 0 };
     
     const percentages = {
       loRecomiendo: Math.round(((loRecomiendo || 0) / total) * 100),
@@ -18,11 +18,11 @@ const GameCard = ({ game, userRating, showAsPostCard = false }) => {
     const maxPercentage = Math.max(percentages.loRecomiendo, percentages.noLoRecomiendo, percentages.meh);
     
     if (percentages.loRecomiendo === maxPercentage) {
-      return { type: '👍 Lo recomiendo', percentage: percentages.loRecomiendo, color: '#38a169' };
+      return { type: `👍 ${percentages.loRecomiendo}% Lo recomiendan`, percentage: percentages.loRecomiendo, color: '#38a169', total };
     } else if (percentages.noLoRecomiendo === maxPercentage) {
-      return { type: '👎 No lo recomiendo', percentage: percentages.noLoRecomiendo, color: '#e53e3e' };
+      return { type: `👎 ${percentages.noLoRecomiendo}% No lo recomiendan`, percentage: percentages.noLoRecomiendo, color: '#e53e3e', total };
     } else {
-      return { type: '😐 Meh', percentage: percentages.meh, color: '#a0aec0' };
+      return { type: `😐 ${percentages.meh}% Meh`, percentage: percentages.meh, color: '#a0aec0', total };
     }
   }, [game.valoraciones]);
 
@@ -47,11 +47,27 @@ const GameCard = ({ game, userRating, showAsPostCard = false }) => {
 
   const handleImageError = useCallback((e) => {
     e.target.src = '/placeholder-game.jpg';
+    e.target.onerror = null; // Prevent infinite loop
   }, []);
+
+  const handleCardClick = useCallback((e) => {
+    console.log('GameCard clicked', game.nombre, 'onGameClick:', onGameClick); // Debug
+    e.preventDefault();
+    e.stopPropagation();
+    if (onGameClick) {
+      onGameClick(game);
+    } else {
+      console.log('onGameClick not defined'); // Debug
+    }
+  }, [onGameClick, game]);
 
   if (showAsPostCard) {
     return (
-      <div className="game-card-post">
+      <div 
+        className="game-card-post"
+        onClick={handleCardClick}
+        style={{ cursor: 'pointer' }}
+      >
         <div className="game-image-post">
           <img 
             src={game.imagen || '/placeholder-game.jpg'} 
@@ -73,7 +89,7 @@ const GameCard = ({ game, userRating, showAsPostCard = false }) => {
   }
 
   return (
-    <div className="game-card">
+    <div className="game-card" onClick={handleCardClick}>
       <div className="game-image">
         <img 
           src={game.imagen || '/placeholder-game.jpg'} 
@@ -92,8 +108,13 @@ const GameCard = ({ game, userRating, showAsPostCard = false }) => {
       <div className="game-info">
         <h3 className="game-title">{game.nombre}</h3>
         <div className="main-rating" style={{ color: mainRating.color }}>
-          {mainRating.type} ({mainRating.percentage}%)
+          {mainRating.type}
         </div>
+        {mainRating.total > 0 && (
+          <div className="rating-count" style={{ color: '#a0aec0', fontSize: '0.9em', marginTop: '4px' }}>
+            {mainRating.total} valoraciones
+          </div>
+        )}
         
         <div className="game-details">
           <p className="release-date">📅 {formattedDate}</p>

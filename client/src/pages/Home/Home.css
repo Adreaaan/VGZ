@@ -1,24 +1,26 @@
 .home-container {
   display: flex;
   min-height: 100vh;
-  background-color: #1a2332;
-  max-width: 1280px;
+  background: #15202b;
+  justify-content: center;
+  max-width: 1200px;
   margin: 0 auto;
+  width: 100vw;
 }
 
 .main-content {
   flex: 1;
   max-width: 600px;
-  border-left: 1px solid #2d3748;
-  border-right: 1px solid #2d3748;
+  border-left: 1px solid #2f3336;
+  border-right: 1px solid #2f3336;
   min-height: 100vh;
-  background-color: #1a2332;
+  background: #15202b;
 }
 
 .home-header {
   position: sticky;
   top: 0;
-  background: #1a2332;
+  background: #15202b;;
   backdrop-filter: blur(12px);
   border-bottom: 1px solid #2d3748;
   padding: 20px 24px;
@@ -41,30 +43,48 @@
 
 .home-tabs {
   display: flex;
-  gap: 12px;
+  gap: 0;
   margin-top: 0;
+  border-bottom: 1px solid #2f3336;
+  width: 100%;
 }
 
 .tab {
-  padding: 8px 16px;
+  padding: 16px 24px;
   background: transparent;
-  border: 1px solid #2d3748;
-  color: #a0aec0;
+  border: none;
+  color: #71767b;
   font-weight: 500;
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: 0;
   transition: all 0.2s ease;
+  flex: 1;
+  text-align: center;
+  font-size: 15px;
+  position: relative;
 }
 
 .tab:hover {
+  background: rgba(255, 255, 255, 0.03);
   color: #ffffff;
-  border-color: #4a5568;
 }
 
 .tab.active {
-  background: #f56500;
+  background: transparent;
   color: #ffffff;
-  border-color: #f56500;
+  font-weight: 700;
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 4px;
+  background: #f56500;
+  border-radius: 2px;
 }
 
 .search-container {
@@ -236,12 +256,26 @@
 }
 
 .follow-btn.following {
-  background: #1a365d;
+  background: #1e3a5f;
   color: white;
+  border: 1px solid #1e3a5f;
 }
 
 .follow-btn.following:hover {
-  background: #2d5282;
+  background: #1a2332;
+  border-color: #f4212e;
+  color: #f4212e;
+}
+
+.follow-btn.following:hover::before {
+  content: 'Dejar de seguir';
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+.follow-btn.following:hover span {
+  opacity: 0;
 }
 
 .posts-container {
@@ -292,11 +326,27 @@
 }
 
 .right-sidebar {
-  width: 350px;
+  width: 300px;
   padding: 20px;
-  height: fit-content;
+  background: #15202b;
+  border-left: 1px solid #2f3336;
   position: sticky;
-  top: 20px;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.loading-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  color: #a0aec0;
+}
+
+.loading-more p {
+  margin-top: 8px;
+  font-size: 0.9rem;
 }
 
 /* Responsive Design */

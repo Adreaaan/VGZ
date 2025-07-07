@@ -3,38 +3,24 @@ const mongoose = require('mongoose');
 const videojuegoSchema = new mongoose.Schema({
   nombre: {
     type: String,
-    required: true,
-    trim: true
+    required: true
   },
   descripcion: {
     type: String,
     required: true
   },
-  generos: [{
+  genero: {
     type: String,
-    enum: ['RPG', 'FPS', 'Estrategia', 'Aventura', 'Deportes', 'Simulacion', 
-           'Puzzle', 'Plataformas', 'Racing', 'Fighting', 'Horror', 'Indie', 'MMO']
-  }],
-  fechaLanzamiento: {
-    type: Date,
     required: true
   },
   desarrollador: {
     type: String,
     required: true
   },
-  distribuidor: {
-    type: String,
+  fechaLanzamiento: {
+    type: Date,
     required: true
   },
-  creador: {
-    type: String,
-    required: true
-  },
-  plataformas: [{
-    type: String,
-    enum: ['PC', 'PlayStation', 'Xbox', 'Nintendo Switch', 'Mobile', 'VR']
-  }],
   imagen: {
     type: String,
     default: null
@@ -67,7 +53,7 @@ const videojuegoSchema = new mongoose.Schema({
   esRPG: {
     type: Boolean,
     default: function() {
-      return this.generos.includes('RPG');
+      return this.generos && this.generos.includes('RPG');
     }
   },
   precio: {

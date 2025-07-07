@@ -1,17 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import GameCard from '../Game/GameCard';
-import Modal from '../UI/Modal';
-import { useToggle } from '../../hooks/useToggle';
-import { useApi } from '../../hooks/useApi';
 import './PostCard.css';
 
-const PostCard = ({ post, onUpdate }) => {
+const PostCard = ({ post, onUpdate, onCommentClick, isInModal = false, isComment = false, showActions = true, onReplyClick, onGameClick }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [showDeleteConfirm, toggleDeleteConfirm] = useToggle(false);
-  const { loading: apiLoading, apiCall } = useApi();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Memoized values
   const currentUser = useMemo(() => {
@@ -40,18 +36,6 @@ const PostCard = ({ post, onUpdate }) => {
     return `${days}d`;
   }, [post.createdAt]);
 
-  const userRating = useMemo(() => {
-    if (!post.valoracionJuego) return null;
-    
-    const ratings = {
-      'lo_recomiendo': { text: '👍 Lo recomiendo', color: '#38a169' },
-      'no_lo_recomiendo': { text: '👎 No lo recomiendo', color: '#e53e3e' },
-      'meh': { text: '😐 Meh', color: '#a0aec0' }
-    };
-    
-    return ratings[post.valoracionJuego] || null;
-  }, [post.valoracionJuego]);
-
   // Initialize likes state from post data
   useEffect(() => {
     if (post.likes) {
@@ -61,8 +45,8 @@ const PostCard = ({ post, onUpdate }) => {
     }
   }, [post.likes, currentUser.id]);
 
-  // Handlers with useCallback for performance
-  const handleLike = useCallback(async () => {
+  const handleLike = useCallback(async (e) => {
+    e.stopPropagation();
     if (loading) return;
     
     try {
@@ -88,48 +72,66 @@ const PostCard = ({ post, onUpdate }) => {
 
   const handleDeletePost = useCallback(async () => {
     try {
-      await apiCall(`/api/posts/${post._id}`, { method: 'DELETE' });
-      onUpdate?.();
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/posts/${post._id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        if (onUpdate) {
+          onUpdate();
+        }
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.mensaje || 'Error al eliminar el post');
+      }
     } catch (error) {
       console.error('Error eliminando post:', error);
       alert('Error al eliminar el post: ' + error.message);
     } finally {
-      toggleDeleteConfirm();
+      setShowDeleteConfirm(false);
       setShowMenu(false);
     }
-  }, [post._id, onUpdate, apiCall, toggleDeleteConfirm]);
+  }, [post._id, onUpdate]);
 
-  const toggleMenu = useCallback(() => {
-    setShowMenu(prev => !prev);
-  }, []);
+  const handleReplyClick = useCallback((e) => {
+    console.log('Reply button clicked, onReplyClick:', onReplyClick); // Debug
+    e.stopPropagation();
+    if (onReplyClick) {
+      onReplyClick(post);
+    } else {
+      console.log('onReplyClick not defined'); // Debug
+    }
+  }, [onReplyClick, post]);
 
-  const closeMenu = useCallback(() => {
-    setShowMenu(false);
-  }, []);
-
-  const openDeleteConfirm = useCallback(() => {
-    toggleDeleteConfirm(true);
-  }, [toggleDeleteConfirm]);
-
-  // Component render helpers
-  const renderUserAvatar = () => (
-    <div className="user-avatar">
-      {post.autor?.avatar ? (
-        <img src={post.autor.avatar} alt={post.autor.username} />
-      ) : (
-        <div className="avatar-placeholder">
-          {post.autor?.username?.charAt(0).toUpperCase()}
-        </div>
-      )}
-    </div>
-  );
+  const handlePostClick = useCallback((e) => {
+    // Solo abrir el post si no se hizo click en el juego
+    if (e.target.closest('.game-card-post')) {
+      return;
+    }
+    
+    if (onCommentClick && isComment && isInModal) {
+      onCommentClick(post);
+    } else if (onCommentClick && !isInModal) {
+      onCommentClick(post);
+    }
+  }, [onCommentClick, post, isInModal, isComment]);
 
   const renderOptionsMenu = () => {
     if (!isOwnPost) return null;
 
     return (
       <div className="post-options">
-        <button className="options-btn" onClick={toggleMenu}>
+        <button 
+          className="options-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowMenu(!showMenu);
+          }}
+        >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="5" r="2" fill="currentColor"/>
             <circle cx="12" cy="12" r="2" fill="currentColor"/>
@@ -138,8 +140,14 @@ const PostCard = ({ post, onUpdate }) => {
         </button>
         
         {showMenu && (
-          <div className="options-menu">
-            <button className="menu-item delete-item" onClick={openDeleteConfirm}>
+          <div className="options-menu" onClick={(e) => e.stopPropagation()}>
+            <button 
+              className="menu-item delete-item"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDeleteConfirm(true);
+              }}
+            >
               🗑️ Eliminar post
             </button>
           </div>
@@ -148,41 +156,39 @@ const PostCard = ({ post, onUpdate }) => {
     );
   };
 
-  const renderDeleteModal = () => (
-    <Modal
-      isOpen={showDeleteConfirm}
-      onClose={toggleDeleteConfirm}
-      title="¿Eliminar post?"
-    >
-      <p>Esta acción no se puede deshacer y el post se eliminará permanentemente.</p>
-      <div className="modal-actions">
-        <button className="cancel-btn" onClick={toggleDeleteConfirm}>
-          Cancelar
-        </button>
-        <button 
-          className="delete-btn" 
-          onClick={handleDeletePost}
-          disabled={apiLoading}
-        >
-          {apiLoading ? 'Eliminando...' : 'Eliminar'}
-        </button>
-      </div>
-    </Modal>
-  );
+  const renderDeleteModal = () => {
+    if (!showDeleteConfirm) return null;
 
-  const renderActionButton = (type, icon, count, onClick) => (
-    <button 
-      className={`action-btn ${type}-btn ${type === 'like' && isLiked ? 'liked' : ''}`}
-      onClick={onClick}
-      disabled={loading}
-    >
-      {icon}
-      <span>{count}</span>
-    </button>
-  );
+    return (
+      <div className="delete-modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
+        <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
+          <h3>¿Eliminar post?</h3>
+          <p>Esta acción no se puede deshacer y el post se eliminará permanentemente.</p>
+          <div className="modal-actions">
+            <button 
+              className="cancel-btn"
+              onClick={() => setShowDeleteConfirm(false)}
+            >
+              Cancelar
+            </button>
+            <button 
+              className="delete-btn"
+              onClick={handleDeletePost}
+            >
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className="post-card">
+    <div 
+      className={`post-card ${isInModal ? 'in-modal' : ''} ${isComment ? 'is-comment' : ''}`}
+      onClick={handlePostClick}
+      style={{ cursor: (!isInModal || isComment) ? 'pointer' : 'default' }}
+    >
       <div className="post-header">
         <div className="user-info">
           <div className="user-avatar">
@@ -211,40 +217,42 @@ const PostCard = ({ post, onUpdate }) => {
           game={post.videojuego} 
           userRating={post.valoracionJuego}
           showAsPostCard={true}
+          onGameClick={onGameClick}
         />
       </div>
 
-      <div className="post-actions">
-        {renderActionButton(
-          'comment',
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M1.751 10c0-4.42 3.584-8.005 8.005-8.005h4.366c4.42 0 8.005 3.584 8.005 8.005 0 4.42-3.584 8.005-8.005 8.005H9.67L6.638 21l2.205-2.96c-4.025-.324-7.092-3.687-7.092-8.04z" stroke="currentColor" strokeWidth="1.5"/>
-          </svg>,
-          post.comentarios?.length || 0
-        )}
+      {showActions && (
+        <div className="post-actions">
+          <button className="action-btn reply-btn" onClick={handleReplyClick}>
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M1.751 10c0-4.42 3.584-8.005 8.005-8.005h4.366c4.42 0 8.005 3.584 8.005 8.005 0 4.42-3.584 8.005-8.005 8.005H9.67L6.638 21l2.205-2.96c-4.025-.324-7.092-3.687-7.092-8.04z" stroke="currentColor" strokeWidth="1.5"/>
+            </svg>
+            <span>{post.comentarios?.length || 0}</span>
+          </button>
 
-        {renderActionButton(
-          'like',
-          <svg viewBox="0 0 24 24" fill={isLiked ? "currentColor" : "none"}>
-            <path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91z" stroke="currentColor" strokeWidth="1.5"/>
-          </svg>,
-          likesCount,
-          handleLike
-        )}
+          <button 
+            className={`action-btn like-btn ${isLiked ? 'liked' : ''}`}
+            onClick={handleLike}
+          >
+            <svg viewBox="0 0 24 24" fill={isLiked ? "currentColor" : "none"}>
+              <path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91z" stroke="currentColor" strokeWidth="1.5"/>
+            </svg>
+            <span>{likesCount}</span>
+          </button>
 
-        {renderActionButton(
-          'share',
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.29 3.3-1.41-1.42L12 2.59zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z" fill="currentColor"/>
-          </svg>,
-          0
-        )}
-      </div>
+          <button className="action-btn share-btn" onClick={(e) => e.stopPropagation()}>
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.29 3.3-1.41-1.42L12 2.59zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z" fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
 
 export default React.memo(PostCard);
+
 
 
 

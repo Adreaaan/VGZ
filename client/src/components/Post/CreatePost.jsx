@@ -70,18 +70,25 @@ const CreatePost = ({ onPostCreated }) => {
 
     try {
       const token = localStorage.getItem('token');
+      const postData = {
+        contenido: contenido.trim(),
+        videojuego: selectedGame._id,
+        esPublico: true,
+        esComentario: false
+      };
+
+      // Solo añadir valoración si se seleccionó una
+      if (valoracion) {
+        postData.valoracionJuego = valoracion;
+      }
+
       const response = await fetch('/api/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({
-          contenido: contenido.trim(),
-          videojuego: selectedGame._id,
-          valoracionJuego: valoracion || null,
-          esPublico: true
-        })
+        body: JSON.stringify(postData)
       });
 
       if (response.ok) {
@@ -93,11 +100,12 @@ const CreatePost = ({ onPostCreated }) => {
         clearGameSelection();
         setValoracion('');
       } else {
-        throw new Error('Error al crear el post');
+        const errorData = await response.json();
+        throw new Error(errorData.mensaje || 'Error al crear el post');
       }
     } catch (error) {
       console.error('Error creando post:', error);
-      alert('Error al crear el post');
+      alert('Error al crear el post: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -161,9 +169,44 @@ const CreatePost = ({ onPostCreated }) => {
               required
             />
             {renderGameDropdown()}
+            
+            {selectedGame && (
+              <div className="selected-game-info">
+                <div className="selected-game">
+                  <img src={selectedGame.imagen} alt={selectedGame.nombre} className="selected-game-thumb" />
+                  <span>{selectedGame.nombre}</span>
+                  <button type="button" onClick={clearGameSelection} className="remove-game-btn">✕</button>
+                </div>
+                
+                <div className="rating-selector">
+                  <p className="rating-prompt">¿Cómo valoras este juego?</p>
+                  <div className="rating-buttons">
+                    <button
+                      type="button"
+                      className={`rating-btn positive ${valoracion === 'lo_recomiendo' ? 'active' : ''}`}
+                      onClick={() => setValoracion(valoracion === 'lo_recomiendo' ? '' : 'lo_recomiendo')}
+                    >
+                      👍 Lo recomiendo
+                    </button>
+                    <button
+                      type="button"
+                      className={`rating-btn neutral ${valoracion === 'meh' ? 'active' : ''}`}
+                      onClick={() => setValoracion(valoracion === 'meh' ? '' : 'meh')}
+                    >
+                      😐 Meh
+                    </button>
+                    <button
+                      type="button"
+                      className={`rating-btn negative ${valoracion === 'no_lo_recomiendo' ? 'active' : ''}`}
+                      onClick={() => setValoracion(valoracion === 'no_lo_recomiendo' ? '' : 'no_lo_recomiendo')}
+                    >
+                      👎 No lo recomiendo
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-
-          {renderRatingSelector()}
         </div>
 
         <div className="post-actions">

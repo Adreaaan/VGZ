@@ -1,45 +1,66 @@
 const { Post, Usuario, Videojuego } = require('../models');
 
 const postController = {
-  // Crear nuevo post
+  // Crear post o comentario
   crearPost: async (req, res) => {
     try {
-      const { contenido, videojuego, esPublico, imagenes, valoracionJuego } = req.body;
+      const { contenido, videojuego, valoracionJuego, esPublico, esComentario, postPadre } = req.body;
       
-      const videojuegoExiste = await Videojuego.findById(videojuego);
-      if (!videojuegoExiste) {
-        return res.status(404).json({ mensaje: 'Videojuego no encontrado' });
+      console.log('Datos recibidos:', { contenido, videojuego, valoracionJuego, esPublico, esComentario, postPadre });
+      
+      if (!contenido) {
+        return res.status(400).json({ mensaje: 'El contenido es requerido' });
       }
-      
-      const nuevoPost = new Post({
-        autor: req.userId,
-        contenido,
-        videojuego,
-        esPublico,
-        imagenes: imagenes || [],
-        valoracionJuego
-      });
-      
-      await nuevoPost.save();
-      
-      // Actualizar valoraciones del videojuego si hay valoración
-      if (valoracionJuego) {
-        if (valoracionJuego === 'lo_recomiendo') {
-          videojuegoExiste.valoraciones.loRecomiendo += 1;
-        } else if (valoracionJuego === 'no_lo_recomiendo') {
-          videojuegoExiste.valoraciones.noLoRecomiendo += 1;
-        } else if (valoracionJuego === 'meh') {
-          videojuegoExiste.valoraciones.meh += 1;
+
+      let nuevoPost;
+
+      if (esComentario && postPadre) {
+        // Crear comentario
+        nuevoPost = new Post({
+          contenido,
+          autor: req.userId,
+          videojuego: videojuego || null,
+          valoracionJuego: valoracionJuego || null,
+          esPublico: esPublico !== false,
+          esComentario: true
+        });
+
+        await nuevoPost.save();
+
+        // Agregar comentario al post padre
+        await Post.findByIdAndUpdate(postPadre, {
+          $push: { comentarios: nuevoPost._id }
+        });
+
+      } else {
+        // Crear post normal
+        if (!videojuego) {
+          return res.status(400).json({ mensaje: 'El videojuego es requerido para posts' });
         }
-        await videojuegoExiste.save();
+
+        nuevoPost = new Post({
+          contenido,
+          videojuego,
+          valoracionJuego: valoracionJuego || null,
+          autor: req.userId,
+          esPublico: esPublico !== false,
+          esComentario: false
+        });
+
+        await nuevoPost.save();
+
+        // Ya no necesitamos actualizar las valoraciones en el videojuego
+        // porque ahora se calculan dinámicamente desde los posts
       }
-      
-      const postPopulado = await Post.findById(nuevoPost._id)
-        .populate('autor', 'username avatar')
-        .populate('videojuego', 'nombre imagen');
-      
-      res.status(201).json(postPopulado);
+
+      await nuevoPost.populate('autor', 'username avatar');
+      if (videojuego) {
+        await nuevoPost.populate('videojuego', 'nombre imagen');
+      }
+
+      res.status(201).json(nuevoPost);
     } catch (error) {
+      console.error('Error completo:', error);
       res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
     }
   },
@@ -81,23 +102,17 @@ const postController = {
   // Obtener posts del feed
   obtenerFeed: async (req, res) => {
     try {
-      console.log('obtenerFeed - userId:', req.userId); // Debug
-      
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
       
       const usuario = await Usuario.findById(req.userId);
-      console.log('Usuario encontrado:', usuario ? usuario.username : 'No encontrado'); // Debug
-      
       if (!usuario) {
         return res.status(404).json({ mensaje: 'Usuario no encontrado' });
       }
       
       const usuariosSeguidos = [...usuario.siguiendo];
-      usuariosSeguidos.push(req.userId); // Incluir posts propios
-      
-      console.log('Usuarios seguidos:', usuariosSeguidos.length); // Debug
+      usuariosSeguidos.push(req.userId);
       
       const posts = await Post.find({
         autor: { $in: usuariosSeguidos },
@@ -108,28 +123,30 @@ const postController = {
       .populate('videojuego', 'nombre imagen')
       .populate({
         path: 'comentarios',
-        populate: {
-          path: 'autor',
-          select: 'username avatar'
-        }
+        populate: [
+          {
+            path: 'autor',
+            select: 'username avatar'
+          },
+          {
+            path: 'videojuego',
+            select: 'nombre imagen'
+          }
+        ]
       })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
       
-      console.log('Posts encontrados:', posts.length); // Debug
       res.json(posts);
     } catch (error) {
-      console.error('Error en obtenerFeed:', error); // Debug
       res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
     }
   },
 
-  // Obtener posts para explorar (todos los posts públicos)
+  // Obtener posts para explorar
   obtenerExplorar: async (req, res) => {
     try {
-      console.log('obtenerExplorar llamado'); // Debug
-      
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
@@ -142,19 +159,23 @@ const postController = {
       .populate('videojuego', 'nombre imagen')
       .populate({
         path: 'comentarios',
-        populate: {
-          path: 'autor',
-          select: 'username avatar'
-        }
+        populate: [
+          {
+            path: 'autor',
+            select: 'username avatar'
+          },
+          {
+            path: 'videojuego',
+            select: 'nombre imagen'
+          }
+        ]
       })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
       
-      console.log('Posts explorar encontrados:', posts.length); // Debug
       res.json(posts);
     } catch (error) {
-      console.error('Error en obtenerExplorar:', error); // Debug
       res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
     }
   },
@@ -187,23 +208,30 @@ const postController = {
   },
 
   // Obtener posts por videojuego
-  obtenerPostsPorVideojuego: async (req, res) => {
+  obtenerPostsPorJuego: async (req, res) => {
     try {
-      const { videojuegoId } = req.params;
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 10;
+      const { gameId } = req.params;
+      const { page = 1, limit = 5 } = req.query;
       const skip = (page - 1) * limit;
       
       const posts = await Post.find({
-        videojuego: videojuegoId,
+        videojuego: gameId,
         esPublico: true,
-        esComentario: false
+        esComentario: false,
+        valoracionJuego: { $exists: true, $ne: null }
       })
       .populate('autor', 'username avatar')
       .populate('videojuego', 'nombre imagen')
+      .populate({
+        path: 'comentarios',
+        populate: {
+          path: 'autor',
+          select: 'username avatar'
+        }
+      })
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(parseInt(limit));
       
       res.json(posts);
     } catch (error) {
@@ -236,7 +264,62 @@ const postController = {
       console.error('Error eliminando post:', error); // Debug
       res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
     }
-  }
+  },
+
+  // Obtener comentarios de un post
+  obtenerComentarios: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
+      const comentarios = await Post.find({
+        postPadre: id,
+        esComentario: true,
+        esPublico: true
+      })
+      .populate('autor', 'username avatar')
+      .populate('videojuego', 'nombre imagen')
+      .sort({ createdAt: 1 })
+      .skip(skip)
+      .limit(limit);
+
+      res.json(comentarios);
+    } catch (error) {
+      res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
+    }
+  },
+
+  // Obtener post individual
+  obtenerPost: async (req, res) => {
+    try {
+      const post = await Post.findById(req.params.id)
+        .populate('autor', 'username avatar')
+        .populate('videojuego', 'nombre imagen')
+        .populate({
+          path: 'comentarios',
+          populate: [
+            {
+              path: 'autor',
+              select: 'username avatar'
+            },
+            {
+              path: 'videojuego',
+              select: 'nombre imagen'
+            }
+          ]
+        });
+
+      if (!post) {
+        return res.status(404).json({ mensaje: 'Post no encontrado' });
+      }
+
+      res.json(post);
+    } catch (error) {
+      res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
+    }
+  },
 };
 
 module.exports = postController;
