@@ -404,3 +404,72 @@
   border-radius: 4px;
   object-fit: cover;
 }
+
+/* Rating Conflict Modal */
+.rating-conflict-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+}
+
+.rating-conflict-content {
+  background: #15202b;
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+  color: white;
+}
+
+.rating-conflict-content h3 {
+  margin: 0 0 16px 0;
+  color: #f56500;
+}
+
+.rating-conflict-content p {
+  margin: 12px 0;
+  line-height: 1.5;
+}
+
+.conflict-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.update-rating-btn {
+  background: #f56500;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  flex: 1;
+}
+
+.update-rating-btn:hover {
+  background: #fd8c00;
+}
+
+.cancel-update-btn {
+  background: #4a5568;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  flex: 1;
+}
+
+.cancel-update-btn:hover {
+  background: #2d3748;
+}

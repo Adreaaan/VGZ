@@ -127,34 +127,51 @@
   font-weight: 700;
 }
 
+.ratings-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.ratings-header h3 {
+  margin: 0;
+}
+
+.total-ratings-count {
+  color: #a0aec0;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
 .rating-bars {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.rating-item {
+.rating-bar {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.rating-label {
-  color: #ffffff;
+.rating-type {
   min-width: 140px;
   font-size: 0.9rem;
 }
 
-.rating-bar {
+.rating-progress {
   flex: 1;
   height: 8px;
-  background: #2f3336;
+  background: #2d3748;
   border-radius: 4px;
   overflow: hidden;
 }
 
 .rating-fill {
   height: 100%;
+  border-radius: 4px;
   transition: width 0.3s ease;
 }
 
@@ -171,10 +188,23 @@
 }
 
 .rating-percentage {
-  color: #a0aec0;
-  font-size: 0.9rem;
   min-width: 40px;
   text-align: right;
+  font-size: 0.9rem;
+  color: #a0aec0;
+}
+
+.rating-count {
+  min-width: 50px;
+  text-align: right;
+  font-size: 0.85rem;
+  color: #718096;
+}
+
+.no-ratings {
+  color: #a0aec0;
+  font-style: italic;
+  margin: 0;
 }
 
 .game-posts-section {

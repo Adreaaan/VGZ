@@ -9,6 +9,8 @@ const CreatePost = ({ onPostCreated }) => {
   const [showGameSearch, setShowGameSearch] = useState(false);
   const [valoracion, setValoracion] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showRatingConflict, setShowRatingConflict] = useState(false);
+  const [conflictData, setConflictData] = useState(null);
 
   const isFormValid = useMemo(() => {
     return contenido.trim() && selectedGame && !loading;
@@ -91,6 +93,19 @@ const CreatePost = ({ onPostCreated }) => {
         body: JSON.stringify(postData)
       });
 
+      if (response.status === 409) {
+        // Conflicto de valoración
+        const conflictInfo = await response.json();
+        setConflictData({
+          ...conflictInfo,
+          nuevaValoracion: valoracion,
+          contenidoNuevo: contenido.trim()
+        });
+        setShowRatingConflict(true);
+        setLoading(false);
+        return;
+      }
+
       if (response.ok) {
         const newPost = await response.json();
         onPostCreated?.(newPost);
@@ -110,6 +125,61 @@ const CreatePost = ({ onPostCreated }) => {
       setLoading(false);
     }
   }, [isFormValid, contenido, selectedGame, valoracion, onPostCreated, clearGameSelection]);
+
+  const handleUpdateRating = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Crear el nuevo post con flag para actualizar valoración
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          contenido: conflictData.contenidoNuevo,
+          videojuego: selectedGame._id,
+          valoracionJuego: conflictData.nuevaValoracion,
+          esPublico: true,
+          esComentario: false,
+          actualizarValoracion: true
+        })
+      });
+
+      if (response.ok) {
+        const newPost = await response.json();
+        onPostCreated?.(newPost);
+        
+        // Resetear formulario
+        setContenido('');
+        clearGameSelection();
+        setValoracion('');
+        setShowRatingConflict(false);
+        setConflictData(null);
+      } else {
+        throw new Error('Error al crear el post con nueva valoración');
+      }
+    } catch (error) {
+      console.error('Error actualizando valoración:', error);
+      alert('Error al actualizar la valoración');
+    }
+  }, [conflictData, selectedGame, onPostCreated, clearGameSelection]);
+
+  const handleCancelRatingUpdate = useCallback(() => {
+    setShowRatingConflict(false);
+    setConflictData(null);
+    setLoading(false);
+  }, []);
+
+  const getRatingText = (rating) => {
+    const ratings = {
+      'lo_recomiendo': '👍 Lo recomiendo',
+      'no_lo_recomiendo': '👎 No lo recomiendo',
+      'meh': '😐 Meh'
+    };
+    return ratings[rating] || rating;
+  };
 
   const renderGameDropdown = () => (
     showGameSearch && gameSearchResults.length > 0 && (
@@ -219,6 +289,36 @@ const CreatePost = ({ onPostCreated }) => {
           </button>
         </div>
       </form>
+
+      {showRatingConflict && (
+        <div className="rating-conflict-modal">
+          <div className="rating-conflict-content">
+            <h3>⚠️ Ya has valorado este juego</h3>
+            <p>
+              Tu valoración anterior: <strong>{getRatingText(conflictData.valoracionAnterior)}</strong>
+            </p>
+            <p>
+              Nueva valoración: <strong>{getRatingText(conflictData.nuevaValoracion)}</strong>
+            </p>
+            <p>¿Quieres eliminar tu valoración anterior y usar la nueva valoración en este post?</p>
+            
+            <div className="conflict-actions">
+              <button 
+                onClick={handleUpdateRating}
+                className="update-rating-btn"
+              >
+                Sí, actualizar valoración
+              </button>
+              <button 
+                onClick={handleCancelRatingUpdate}
+                className="cancel-update-btn"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

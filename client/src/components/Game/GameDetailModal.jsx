@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PostCard from '../Post/PostCard';
 import LoadingSpinner from '../UI/LoadingSpinner';
 import PostDetailModal from '../Post/PostDetailModal';
@@ -100,27 +100,28 @@ const GameDetailModal = ({ isOpen, onClose, game }) => {
     }
   }, [isOpen, game, fetchFullGameData, fetchGamePosts]);
 
-  const calculateRatingPercentages = () => {
-    const gameData = fullGameData || game;
-    if (!gameData?.valoraciones) {
-      return { loRecomiendo: 0, noLoRecomiendo: 0, meh: 0 };
-    }
+  const mainRating = useMemo(() => {
+    const { loRecomiendo, noLoRecomiendo, meh } = game?.valoraciones || {};
+    const total = (loRecomiendo || 0) + (noLoRecomiendo || 0) + (meh || 0);
     
-    const { loRecomiendo = 0, noLoRecomiendo = 0, meh = 0 } = gameData.valoraciones;
-    const total = loRecomiendo + noLoRecomiendo + meh;
+    if (total === 0) return { type: 'Sin valoraciones', percentage: 0, color: '#a0aec0', total: 0 };
     
-    if (total === 0) {
-      return { loRecomiendo: 0, noLoRecomiendo: 0, meh: 0 };
-    }
-    
-    return {
-      loRecomiendo: Math.round((loRecomiendo / total) * 100),
-      noLoRecomiendo: Math.round((noLoRecomiendo / total) * 100),
-      meh: Math.round((meh / total) * 100)
+    const percentages = {
+      loRecomiendo: Math.round(((loRecomiendo || 0) / total) * 100),
+      noLoRecomiendo: Math.round(((noLoRecomiendo || 0) / total) * 100),
+      meh: Math.round(((meh || 0) / total) * 100)
     };
-  };
-
-  const percentages = calculateRatingPercentages();
+    
+    const maxPercentage = Math.max(percentages.loRecomiendo, percentages.noLoRecomiendo, percentages.meh);
+    
+    if (percentages.loRecomiendo === maxPercentage) {
+      return { type: `👍 ${percentages.loRecomiendo}% Lo recomiendan`, percentage: percentages.loRecomiendo, color: '#38a169', total };
+    } else if (percentages.noLoRecomiendo === maxPercentage) {
+      return { type: `👎 ${percentages.noLoRecomiendo}% No lo recomiendan`, percentage: percentages.noLoRecomiendo, color: '#e53e3e', total };
+    } else {
+      return { type: `😐 ${percentages.meh}% Meh`, percentage: percentages.meh, color: '#a0aec0', total };
+    }
+  }, [game?.valoraciones]);
 
   const displayGame = fullGameData || game;
 
@@ -244,42 +245,55 @@ const GameDetailModal = ({ isOpen, onClose, game }) => {
                   )}
                 </div>
                 
-                <div className="rating-section">
-                  <h5>Valoraciones de usuarios</h5>
-                  <div className="rating-bars">
-                    <div className="rating-item">
-                      <span className="rating-label">👍 Lo recomiendo</span>
-                      <div className="rating-bar">
-                        <div 
-                          className="rating-fill positive" 
-                          style={{ width: `${percentages.loRecomiendo}%` }}
-                        ></div>
-                      </div>
-                      <span className="rating-percentage">{percentages.loRecomiendo}%</span>
-                    </div>
-                    
-                    <div className="rating-item">
-                      <span className="rating-label">😐 Meh</span>
-                      <div className="rating-bar">
-                        <div 
-                          className="rating-fill neutral" 
-                          style={{ width: `${percentages.meh}%` }}
-                        ></div>
-                      </div>
-                      <span className="rating-percentage">{percentages.meh}%</span>
-                    </div>
-                    
-                    <div className="rating-item">
-                      <span className="rating-label">👎 No lo recomiendo</span>
-                      <div className="rating-bar">
-                        <div 
-                          className="rating-fill negative" 
-                          style={{ width: `${percentages.noLoRecomiendo}%` }}
-                        ></div>
-                      </div>
-                      <span className="rating-percentage">{percentages.noLoRecomiendo}%</span>
-                    </div>
+                <div className="ratings-section">
+                  <div className="ratings-header">
+                    <h3>Valoraciones de usuarios</h3>
+                    {mainRating.total > 0 && (
+                      <span className="total-ratings-count">({mainRating.total})</span>
+                    )}
                   </div>
+                  
+                  {mainRating.total > 0 ? (
+                    <div className="rating-bars">
+                      <div className="rating-bar">
+                        <span className="rating-type positive">👍 Lo recomiendo</span>
+                        <div className="rating-progress">
+                          <div 
+                            className="rating-fill positive" 
+                            style={{ width: `${(game.valoraciones?.loRecomiendo || 0) / mainRating.total * 100}%` }}
+                          ></div>
+                        </div>
+                        <span className="rating-percentage">{Math.round((game.valoraciones?.loRecomiendo || 0) / mainRating.total * 100)}%</span>
+                        <span className="rating-count">({game.valoraciones?.loRecomiendo || 0})</span>
+                      </div>
+                      
+                      <div className="rating-bar">
+                        <span className="rating-type neutral">😐 Meh</span>
+                        <div className="rating-progress">
+                          <div 
+                            className="rating-fill neutral" 
+                            style={{ width: `${(game.valoraciones?.meh || 0) / mainRating.total * 100}%` }}
+                          ></div>
+                        </div>
+                        <span className="rating-percentage">{Math.round((game.valoraciones?.meh || 0) / mainRating.total * 100)}%</span>
+                        <span className="rating-count">({game.valoraciones?.meh || 0})</span>
+                      </div>
+                      
+                      <div className="rating-bar">
+                        <span className="rating-type negative">👎 No lo recomiendo</span>
+                        <div className="rating-progress">
+                          <div 
+                            className="rating-fill negative" 
+                            style={{ width: `${(game.valoraciones?.noLoRecomiendo || 0) / mainRating.total * 100}%` }}
+                          ></div>
+                        </div>
+                        <span className="rating-percentage">{Math.round((game.valoraciones?.noLoRecomiendo || 0) / mainRating.total * 100)}%</span>
+                        <span className="rating-count">({game.valoraciones?.noLoRecomiendo || 0})</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="no-ratings">Este juego aún no tiene valoraciones</p>
+                  )}
                 </div>
               </div>
             </div>

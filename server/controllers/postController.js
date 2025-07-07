@@ -4,9 +4,9 @@ const postController = {
   // Crear post o comentario
   crearPost: async (req, res) => {
     try {
-      const { contenido, videojuego, valoracionJuego, esPublico, esComentario, postPadre } = req.body;
+      const { contenido, videojuego, valoracionJuego, esPublico, esComentario, postPadre, actualizarValoracion } = req.body;
       
-      console.log('Datos recibidos:', { contenido, videojuego, valoracionJuego, esPublico, esComentario, postPadre });
+      console.log('Datos recibidos:', { contenido, videojuego, valoracionJuego, esPublico, esComentario, postPadre, actualizarValoracion });
       
       if (!contenido) {
         return res.status(400).json({ mensaje: 'El contenido es requerido' });
@@ -15,7 +15,7 @@ const postController = {
       let nuevoPost;
 
       if (esComentario && postPadre) {
-        // Crear comentario
+        // Crear comentario - sin verificación de valoración
         nuevoPost = new Post({
           contenido,
           autor: req.userId,
@@ -38,6 +38,30 @@ const postController = {
           return res.status(400).json({ mensaje: 'El videojuego es requerido para posts' });
         }
 
+        // Si hay valoración, verificar si ya existe una valoración previa
+        if (valoracionJuego) {
+          const valoracionExistente = await Post.findOne({
+            autor: req.userId,
+            videojuego: videojuego,
+            valoracionJuego: { $exists: true, $ne: null },
+            esComentario: false
+          });
+
+          if (valoracionExistente) {
+            // Si se confirma actualizar valoración, eliminar la anterior
+            if (actualizarValoracion) {
+              valoracionExistente.valoracionJuego = null;
+              await valoracionExistente.save();
+            } else {
+              return res.status(409).json({ 
+                mensaje: 'Ya has valorado este juego',
+                valoracionAnterior: valoracionExistente.valoracionJuego,
+                postAnterior: valoracionExistente._id
+              });
+            }
+          }
+        }
+
         nuevoPost = new Post({
           contenido,
           videojuego,
@@ -48,9 +72,6 @@ const postController = {
         });
 
         await nuevoPost.save();
-
-        // Ya no necesitamos actualizar las valoraciones en el videojuego
-        // porque ahora se calculan dinámicamente desde los posts
       }
 
       await nuevoPost.populate('autor', 'username avatar');
@@ -61,6 +82,38 @@ const postController = {
       res.status(201).json(nuevoPost);
     } catch (error) {
       console.error('Error completo:', error);
+      res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
+    }
+  },
+
+  // Actualizar valoración de un post existente
+  actualizarValoracion: async (req, res) => {
+    try {
+      const { postId, nuevaValoracion } = req.body;
+      
+      const post = await Post.findOne({
+        _id: postId,
+        autor: req.userId,
+        esComentario: false
+      });
+
+      if (!post) {
+        return res.status(404).json({ mensaje: 'Post no encontrado o no tienes permisos' });
+      }
+
+      // Actualizar la valoración
+      post.valoracionJuego = nuevaValoracion;
+      await post.save();
+
+      await post.populate('autor', 'username avatar');
+      await post.populate('videojuego', 'nombre imagen');
+
+      res.json({ 
+        mensaje: 'Valoración actualizada exitosamente',
+        post: post
+      });
+    } catch (error) {
+      console.error('Error actualizando valoración:', error);
       res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
     }
   },
@@ -257,6 +310,13 @@ const postController = {
         return res.status(403).json({ mensaje: 'No tienes permisos para eliminar este post' });
       }
       
+      // Si es una solicitud para eliminar valoración
+      if (req.body.eliminarValoracion) {
+        post.valoracionJuego = null;
+        await post.save();
+        return res.json({ mensaje: 'Valoración eliminada exitosamente' });
+      }
+      
       await Post.findByIdAndDelete(req.params.id);
       console.log('Post eliminado exitosamente'); // Debug
       res.json({ mensaje: 'Post eliminado exitosamente' });
@@ -320,6 +380,34 @@ const postController = {
       res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
     }
   },
+
+  // Actualizar post (incluyendo eliminar valoración)
+  actualizarPost: async (req, res) => {
+    try {
+      const post = await Post.findById(req.params.id);
+      if (!post) {
+        return res.status(404).json({ mensaje: 'Post no encontrado' });
+      }
+      
+      if (post.autor.toString() !== req.userId) {
+        return res.status(403).json({ mensaje: 'No tienes permisos para actualizar este post' });
+      }
+      
+      // Si es una solicitud para eliminar valoración
+      if (req.body.eliminarValoracion) {
+        post.valoracionJuego = null;
+        await post.save();
+        return res.json({ mensaje: 'Valoración eliminada exitosamente' });
+      }
+      
+      // Aquí se pueden agregar otras actualizaciones del post
+      
+      res.json({ mensaje: 'Post actualizado exitosamente' });
+    } catch (error) {
+      console.error('Error actualizando post:', error);
+      res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
+    }
+  }
 };
 
 module.exports = postController;
