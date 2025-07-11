@@ -4,6 +4,7 @@ import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import Home from './pages/Home/Home';
 import Games from './pages/Games/Games';
+import Notifications from './pages/Notifications/Notifications';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import './App.css';
 
@@ -26,9 +27,17 @@ function App() {
             path="/games" 
             element={
               <ProtectedRoute>
-                <Games />s
+                <Games />
               </ProtectedRoute>
             } 
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <Notifications />
+              </ProtectedRoute>
+            }
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

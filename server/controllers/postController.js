@@ -1,4 +1,5 @@
 const { Post, Usuario, Videojuego } = require('../models');
+const { crearNotificacion } = require('./notificationController');
 
 const postController = {
   // Crear post o comentario
@@ -72,6 +73,23 @@ const postController = {
         });
 
         await nuevoPost.save();
+
+        // Crear notificaciones para seguidores cuando se crea un post
+        if (!esComentario) {
+          const usuario = await Usuario.findById(req.userId).populate('seguidores');
+          
+          if (usuario && usuario.seguidores.length > 0) {
+            for (const seguidor of usuario.seguidores) {
+              await crearNotificacion(
+                seguidor._id,
+                req.userId,
+                'post',
+                `${usuario.username} ha publicado algo nuevo`,
+                nuevoPost._id
+              );
+            }
+          }
+        }
       }
 
       await nuevoPost.populate('autor', 'username avatar');
@@ -245,15 +263,31 @@ const postController = {
         like => like.usuario.toString() === req.userId
       );
       
+      let liked = false;
       if (likeIndex > -1) {
         // Quitar like
         post.likes.splice(likeIndex, 1);
       } else {
         // Agregar like
         post.likes.push({ usuario: req.userId });
+        liked = true;
       }
       
       await post.save();
+
+      // Si se dio like (no se quitó), crear notificación
+      if (liked && post.autor.toString() !== req.userId) {
+        const usuario = await Usuario.findById(req.userId);
+        const { crearNotificacion } = require('./notificationController');
+        await crearNotificacion(
+          post.autor,
+          req.userId,
+          'like',
+          `A ${usuario.username} le gustó tu post`,
+          post._id
+        );
+      }
+      
       res.json({ likes: post.likes.length });
     } catch (error) {
       res.status(500).json({ mensaje: 'Error del servidor', error: error.message });

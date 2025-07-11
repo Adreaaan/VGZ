@@ -101,34 +101,51 @@ const usuarioController = {
   // Seguir usuario
   seguirUsuario: async (req, res) => {
     try {
-      const usuarioActual = await Usuario.findById(req.userId);
-      const usuarioASeguir = await Usuario.findById(req.params.id);
+      const { usuarioId } = req.params;
       
+      if (usuarioId === req.userId) {
+        return res.status(400).json({ mensaje: 'No puedes seguirte a ti mismo' });
+      }
+
+      const usuario = await Usuario.findById(req.userId);
+      const usuarioASeguir = await Usuario.findById(usuarioId);
+
       if (!usuarioASeguir) {
         return res.status(404).json({ mensaje: 'Usuario no encontrado' });
       }
-      
-      if (usuarioActual.siguiendo.includes(usuarioASeguir._id)) {
+
+      if (usuario.siguiendo.includes(usuarioId)) {
         return res.status(400).json({ mensaje: 'Ya sigues a este usuario' });
       }
-      
-      usuarioActual.siguiendo.push(usuarioASeguir._id);
-      usuarioASeguir.seguidores.push(usuarioActual._id);
-      
-      await usuarioActual.save();
+
+      usuario.siguiendo.push(usuarioId);
+      usuarioASeguir.seguidores.push(req.userId);
+
+      await usuario.save();
       await usuarioASeguir.save();
-      
+
+      // Crear notificación
+      const { crearNotificacion } = require('./notificationController');
+      await crearNotificacion(
+        usuarioId,
+        req.userId,
+        'follow',
+        `${usuario.username} te ha empezado a seguir`
+      );
+
       res.json({ mensaje: 'Usuario seguido exitosamente' });
     } catch (error) {
-      res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
+      console.error('Error siguiendo usuario:', error);
+      res.status(500).json({ mensaje: 'Error del servidor' });
     }
   },
 
   // Dejar de seguir usuario
   dejarDeSeguir: async (req, res) => {
     try {
+      const { usuarioId } = req.params;
       const usuarioActual = await Usuario.findById(req.userId);
-      const usuarioADejarDeSeguir = await Usuario.findById(req.params.id);
+      const usuarioADejarDeSeguir = await Usuario.findById(usuarioId);
       
       if (!usuarioADejarDeSeguir) {
         return res.status(404).json({ mensaje: 'Usuario no encontrado' });

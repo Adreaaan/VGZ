@@ -79,6 +79,19 @@
   font-size: 1rem;
 }
 
+.notification-badge {
+  background: #f56500;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: auto;
+  min-width: 18px;
+  text-align: center;
+  line-height: 1.2;
+}
+
 .sidebar-footer {
   margin-top: auto;
   padding-top: 20px;

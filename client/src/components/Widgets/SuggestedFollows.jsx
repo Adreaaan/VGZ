@@ -28,6 +28,29 @@ const SuggestedFollows = ({ onUserFollowed }) => {
 
   useEffect(() => {
     fetchSuggestedUsers();
+    
+    // Obtener la lista de usuarios que ya sigue
+    const fetchFollowingUsers = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const response = await fetch(`/api/usuarios/${user.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const userData = await response.json();
+          const siguiendoIds = new Set(userData.siguiendo.map(u => u._id || u));
+          setFollowingUsers(siguiendoIds);
+        }
+      } catch (error) {
+        console.error('Error fetching following users:', error);
+      }
+    };
+
+    fetchFollowingUsers();
   }, [fetchSuggestedUsers]);
 
   const handleFollowUser = useCallback(async (userId) => {
@@ -35,23 +58,33 @@ const SuggestedFollows = ({ onUserFollowed }) => {
       const token = localStorage.getItem('token');
       const isFollowing = followingUsers.has(userId);
       
+      console.log('SuggestedFollows - Attempting to follow/unfollow user:', userId, 'Currently following:', isFollowing);
+      
       const response = await fetch(`/api/usuarios/${userId}/seguir`, {
         method: isFollowing ? 'DELETE' : 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
+
+      console.log('SuggestedFollows - Response status:', response.status);
 
       if (response.ok) {
         const newFollowingUsers = new Set(followingUsers);
         if (isFollowing) {
           newFollowingUsers.delete(userId);
+          console.log('SuggestedFollows - Unfollowed user:', userId);
         } else {
           newFollowingUsers.add(userId);
+          console.log('SuggestedFollows - Followed user:', userId);
         }
         setFollowingUsers(newFollowingUsers);
         
         onUserFollowed?.(userId, !isFollowing);
+      } else {
+        const errorData = await response.json();
+        console.error('SuggestedFollows - Error response:', errorData);
       }
     } catch (error) {
       console.error('Error al seguir/dejar de seguir usuario:', error);
@@ -76,7 +109,9 @@ const SuggestedFollows = ({ onUserFollowed }) => {
         className={`follow-btn ${followingUsers.has(user._id) ? 'following' : ''}`}
         onClick={() => handleFollowUser(user._id)}
       >
-        {followingUsers.has(user._id) ? 'Siguiendo' : 'Seguir'}
+        <span className="follow-text">
+          {followingUsers.has(user._id) ? 'Siguiendo' : 'Seguir'}
+        </span>
       </button>
     </div>
   ), [followingUsers, handleFollowUser]);

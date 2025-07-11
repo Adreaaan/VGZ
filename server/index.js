@@ -9,6 +9,7 @@ const usuarioController = require('./controllers/usuarioController');
 const postController = require('./controllers/postController');
 const videojuegoController = require('./controllers/videojuegoController');
 const misNotasController = require('./controllers/misNotasController');
+const notificationController = require('./controllers/notificationController');
 
 // Importar middleware de autenticación
 const { auth } = require('./middleware');
@@ -58,9 +59,15 @@ app.get('/api/videojuegos/:id', auth, videojuegoController.obtenerVideojuegoPorI
 app.get('/api/usuarios/buscar', auth, usuarioController.buscarUsuarios);
 app.get('/api/usuarios/sugeridos', auth, usuarioController.obtenerUsuariosSugeridos);
 app.get('/api/usuarios/:id', auth, usuarioController.obtenerPerfil);
-app.post('/api/usuarios/:id/seguir', auth, usuarioController.seguirUsuario);
-app.delete('/api/usuarios/:id/seguir', auth, usuarioController.dejarDeSeguir);
+app.post('/api/usuarios/:usuarioId/seguir', auth, usuarioController.seguirUsuario);
+app.delete('/api/usuarios/:usuarioId/seguir', auth, usuarioController.dejarDeSeguir);
 app.put('/api/usuarios/perfil', auth, usuarioController.actualizarPerfil);
+
+// Rutas de notificaciones
+app.get('/api/notifications', auth, notificationController.obtenerNotificaciones);
+app.get('/api/notifications/unread-count', auth, notificationController.obtenerContadorNoLeidas);
+app.put('/api/notifications/:notificationId/read', auth, notificationController.marcarComoLeida);
+app.put('/api/notifications/mark-all-read', auth, notificationController.marcarTodasComoLeidas);
 
 // Servir archivos estáticos
 app.use(express.static('public'));

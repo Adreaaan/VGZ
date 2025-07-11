@@ -133,7 +133,7 @@
 .suggested-user {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   padding: 8px;
 }
 
@@ -164,12 +164,19 @@
 
 .user-info-small {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  max-width: calc(100% - 90px); /* Reservar espacio para el botón */
 }
 
 .username-small {
   color: #ffffff;
   font-weight: 500;
   font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 .follow-btn {
@@ -182,8 +189,49 @@
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-width: 70px;
 }
 
 .follow-btn:hover {
   background: #fd8c00;
+}
+
+.follow-btn.following {
+  background: #1e3a5f;
+  color: white;
+  border: 1px solid #1e3a5f;
+  position: relative;
+  overflow: hidden;
+}
+
+.follow-btn.following:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: white;
+}
+
+.follow-btn.following .follow-text {
+  transition: opacity 0.2s ease;
+}
+
+.follow-btn.following:hover .follow-text {
+  opacity: 0;
+}
+
+.follow-btn.following::after {
+  content: 'Dejar de seguir';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.follow-btn.following:hover::after {
+  opacity: 1;
 }

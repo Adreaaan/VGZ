@@ -259,23 +259,37 @@
   background: #1e3a5f;
   color: white;
   border: 1px solid #1e3a5f;
+  position: relative;
+  overflow: hidden;
 }
 
 .follow-btn.following:hover {
-  background: #1a2332;
-  border-color: #f4212e;
-  color: #f4212e;
+  background: #dc2626;
+  border-color: #dc2626;
+  color: white;
 }
 
-.follow-btn.following:hover::before {
+.follow-btn.following .follow-text {
+  transition: opacity 0.2s ease;
+}
+
+.follow-btn.following:hover .follow-text {
+  opacity: 0;
+}
+
+.follow-btn.following::after {
   content: 'Dejar de seguir';
   position: absolute;
-  left: 0;
-  right: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
 }
 
-.follow-btn.following:hover span {
-  opacity: 0;
+.follow-btn.following:hover::after {
+  opacity: 1;
 }
 
 .posts-container {

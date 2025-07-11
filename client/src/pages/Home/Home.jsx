@@ -63,6 +63,29 @@ const Home = () => {
     fetchPosts(1, false);
     setPage(1);
     setHasMore(true);
+    
+    // Obtener la lista de usuarios que ya sigue
+    const fetchFollowingUsers = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const response = await fetch(`/api/usuarios/${user.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const userData = await response.json();
+          const siguiendoIds = new Set(userData.siguiendo.map(u => u._id || u));
+          setFollowingUsers(siguiendoIds);
+        }
+      } catch (error) {
+        console.error('Error fetching following users:', error);
+      }
+    };
+
+    fetchFollowingUsers();
   }, [activeTab, fetchPosts]);
 
   const handleTabChange = useCallback((tab) => {
@@ -119,27 +142,43 @@ const Home = () => {
   const handleFollowUser = useCallback(async (userId) => {
     try {
       const isFollowing = followingUsers.has(userId);
+      const token = localStorage.getItem('token');
       
-      await apiCall(`/api/usuarios/${userId}/seguir`, {
-        method: isFollowing ? 'DELETE' : 'POST'
+      console.log('Attempting to follow/unfollow user:', userId, 'Currently following:', isFollowing);
+      
+      const response = await fetch(`/api/usuarios/${userId}/seguir`, {
+        method: isFollowing ? 'DELETE' : 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
-      const newFollowingUsers = new Set(followingUsers);
-      if (isFollowing) {
-        newFollowingUsers.delete(userId);
+      console.log('Response status:', response.status);
+
+      if (response.ok) {
+        const newFollowingUsers = new Set(followingUsers);
+        if (isFollowing) {
+          newFollowingUsers.delete(userId);
+          console.log('Unfollowed user:', userId);
+        } else {
+          newFollowingUsers.add(userId);
+          console.log('Followed user:', userId);
+        }
+        setFollowingUsers(newFollowingUsers);
+        
+        // Recargar feed si estamos en la pestaña "siguiendo"
+        if (activeTab === 'siguiendo') {
+          fetchPosts(1, false);
+        }
       } else {
-        newFollowingUsers.add(userId);
-      }
-      setFollowingUsers(newFollowingUsers);
-      
-      // Recargar feed si estamos en la pestaña "siguiendo"
-      if (activeTab === 'siguiendo') {
-        fetchPosts(1, false);
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
       }
     } catch (error) {
       console.error('Error al seguir/dejar de seguir usuario:', error);
     }
-  }, [followingUsers, apiCall, activeTab, fetchPosts]);
+  }, [followingUsers, activeTab, fetchPosts]);
 
   const handleUserFollowed = useCallback((userId, isNowFollowing) => {
     // Actualizar el estado local de usuarios seguidos
@@ -367,7 +406,9 @@ const Home = () => {
                             className={`follow-btn ${followingUsers.has(user._id) ? 'following' : ''}`}
                             onClick={() => handleFollowUser(user._id)}
                           >
-                            {followingUsers.has(user._id) ? 'Siguiendo' : 'Seguir'}
+                            <span className="follow-text">
+                              {followingUsers.has(user._id) ? 'Siguiendo' : 'Seguir'}
+                            </span>
                           </button>
                         </div>
                       ))}
