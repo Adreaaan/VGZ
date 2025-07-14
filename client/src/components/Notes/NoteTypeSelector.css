@@ -1,0 +1,74 @@
+.note-type-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.note-type-option {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: #2d3748;
+  border: 2px solid #4a5568;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.note-type-option:hover:not(.disabled) {
+  border-color: #f56500;
+  background: rgba(245, 101, 0, 0.1);
+}
+
+.note-type-option.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #1a202c;
+}
+
+.note-type-icon {
+  font-size: 2rem;
+  min-width: 60px;
+  text-align: center;
+}
+
+.note-type-content {
+  flex: 1;
+}
+
+.note-type-content h4 {
+  color: #ffffff;
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.note-type-content p {
+  color: #a0aec0;
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.not-available {
+  color: #f56565;
+  font-size: 0.8rem;
+  font-style: italic;
+  margin-top: 4px;
+  display: block;
+}
+
+@media (max-width: 600px) {
+  .note-type-option {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .note-type-icon {
+    min-width: auto;
+  }
+}

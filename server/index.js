@@ -63,6 +63,13 @@ app.post('/api/usuarios/:usuarioId/seguir', auth, usuarioController.seguirUsuari
 app.delete('/api/usuarios/:usuarioId/seguir', auth, usuarioController.dejarDeSeguir);
 app.put('/api/usuarios/perfil', auth, usuarioController.actualizarPerfil);
 
+// Rutas de notas
+app.get('/api/notas', auth, misNotasController.obtenerNotas);
+app.get('/api/notas/:id', auth, misNotasController.obtenerNotaPorId);
+app.post('/api/notas', auth, misNotasController.crearNota);
+app.put('/api/notas/:id', auth, misNotasController.actualizarNota);
+app.delete('/api/notas/:id', auth, misNotasController.eliminarNota);
+
 // Rutas de notificaciones
 app.get('/api/notifications', auth, notificationController.obtenerNotificaciones);
 app.get('/api/notifications/unread-count', auth, notificationController.obtenerContadorNoLeidas);

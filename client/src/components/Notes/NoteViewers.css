@@ -1,0 +1,273 @@
+.note-viewer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.note-viewer.editing {
+  min-height: 400px;
+}
+
+.text-content {
+  flex: 1;
+}
+
+.text-display {
+  color: #ffffff;
+  font-size: 1rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.text-display p {
+  margin: 0 0 12px 0;
+}
+
+.empty-content {
+  text-align: center;
+  color: #71767b;
+  padding: 40px 20px;
+  font-style: italic;
+}
+
+.content-textarea {
+  width: 100%;
+  padding: 16px;
+  background: #2d3748;
+  border: 1px solid #4a5568;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 1rem;
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.6;
+  transition: border-color 0.2s ease;
+  min-height: 300px;
+}
+
+.content-textarea:focus {
+  border-color: #f56500;
+}
+
+.editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 0;
+  border-top: 1px solid #2f3336;
+  margin-top: 20px;
+}
+
+.cancel-btn {
+  background: transparent;
+  color: #a0aec0;
+  border: 1px solid #4a5568;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn:hover:not(:disabled) {
+  border-color: #71767b;
+  color: #ffffff;
+}
+
+.save-btn {
+  background: #f56500;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.save-btn:hover:not(:disabled) {
+  background: #fd8c00;
+}
+
+.cancel-btn:disabled,
+.save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Todo List Viewer Styles */
+.todo-viewer-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.todo-viewer-column {
+  background: #1a202c;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.viewer-column-header {
+  padding: 12px 16px;
+  background: #2d3748;
+  border-top: 3px solid;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.viewer-column-header h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.viewer-task-count {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.todo-viewer-column-content {
+  padding: 12px;
+  min-height: 200px;
+}
+
+.todo-viewer-item {
+  background: #2d3748;
+  border: 1px solid #4a5568;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  color: #ffffff;
+  font-size: 0.9rem;
+}
+
+.empty-viewer-column {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  color: #71767b;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* Build Viewer Styles */
+.build-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.build-section {
+  background: #1a202c;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.build-section h4 {
+  color: #f56500;
+  margin: 0 0 12px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.character-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  color: #a0aec0;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.info-value {
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.stat-item {
+  background: #2d3748;
+  border-radius: 6px;
+  padding: 12px;
+  text-align: center;
+}
+
+.stat-name {
+  color: #a0aec0;
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  color: #ffffff;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.equipment-item {
+  background: #2d3748;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.equipment-slot {
+  color: #a0aec0;
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+}
+
+.equipment-name {
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.build-notes {
+  background: #2d3748;
+  border-radius: 6px;
+  padding: 16px;
+  color: #ffffff;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 768px) {
+  .todo-viewer-board {
+    grid-template-columns: 1fr;
+  }
+  
+  .character-info,
+  .stats-grid,
+  .equipment-grid {
+    grid-template-columns: 1fr;
+  }
+}

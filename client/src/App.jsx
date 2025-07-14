@@ -5,6 +5,7 @@ import Register from './components/Auth/Register';
 import Home from './pages/Home/Home';
 import Games from './pages/Games/Games';
 import Notifications from './pages/Notifications/Notifications';
+import Notes from './pages/Notes/Notes';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import './App.css';
 
@@ -36,6 +37,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Notifications />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notes"
+            element={
+              <ProtectedRoute>
+                <Notes />
               </ProtectedRoute>
             }
           />

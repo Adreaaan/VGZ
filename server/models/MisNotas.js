@@ -1,5 +1,90 @@
 const mongoose = require('mongoose');
 
+const buildRPGSchema = new mongoose.Schema({
+  nombre: {
+    type: String,
+    required: false,
+    default: ''
+  },
+  arma: {
+    type: String,
+    required: false,
+    default: ''
+  },
+  armadura: {
+    type: String,
+    required: false,
+    default: ''
+  },
+  escudo: {
+    type: String,
+    required: false,
+    default: ''
+  },
+  accesorios: {
+    type: String,
+    required: false,
+    default: ''
+  },
+  clase: {
+    type: String,
+    default: ''
+  },
+  estiloJuego: {
+    type: String,
+    enum: ['Agresivo', 'Defensivo', 'Equilibrado', 'Stealth', 'Support', ''],
+    default: ''
+  },
+  comportamiento: {
+    type: String,
+    enum: ['PvP', 'PvE', 'Solo', 'Cooperativo', 'Mixto', ''],
+    default: ''
+  },
+  nivel: {
+    type: Number,
+    default: 1,
+    min: 1
+  },
+  estadisticas: {
+    fuerza: { type: Number, default: 0 },
+    destreza: { type: Number, default: 0 },
+    inteligencia: { type: Number, default: 0 },
+    constitucion: { type: Number, default: 0 },
+    carisma: { type: Number, default: 0 },
+    sabiduria: { type: Number, default: 0 }
+  },
+  equipamiento: [{
+    tipo: {
+      type: String,
+      enum: ['Arma', 'Armadura', 'Accesorio', 'Consumible']
+    },
+    nombre: String,
+    descripcion: String,
+    estadisticas: Object,
+    equipado: {
+      type: Boolean,
+      default: false
+    }
+  }],
+  habilidades: [{
+    nombre: String,
+    descripcion: String,
+    nivel: { type: Number, default: 1 },
+    puntosSinAsignar: { type: Number, default: 0 }
+  }],
+  estrategia: {
+    type: String,
+    default: ''
+  },
+  objetivos: [{
+    descripcion: String,
+    completado: {
+      type: Boolean,
+      default: false
+    }
+  }]
+});
+
 const misNotasSchema = new mongoose.Schema({
   usuario: {
     type: mongoose.Schema.Types.ObjectId,
@@ -66,65 +151,7 @@ const misNotasSchema = new mongoose.Schema({
   }],
   
   // Para Build RPG (solo disponible si el juego es RPG)
-  buildRPG: {
-    clase: {
-      type: String,
-      default: ''
-    },
-    estiloJuego: {
-      type: String,
-      enum: ['Agresivo', 'Defensivo', 'Equilibrado', 'Stealth', 'Support', ''],
-      default: ''
-    },
-    comportamiento: {
-      type: String,
-      enum: ['PvP', 'PvE', 'Solo', 'Cooperativo', 'Mixto', ''],
-      default: ''
-    },
-    nivel: {
-      type: Number,
-      default: 1,
-      min: 1
-    },
-    estadisticas: {
-      fuerza: { type: Number, default: 0 },
-      destreza: { type: Number, default: 0 },
-      inteligencia: { type: Number, default: 0 },
-      constitucion: { type: Number, default: 0 },
-      carisma: { type: Number, default: 0 },
-      sabiduria: { type: Number, default: 0 }
-    },
-    equipamiento: [{
-      tipo: {
-        type: String,
-        enum: ['Arma', 'Armadura', 'Accesorio', 'Consumible']
-      },
-      nombre: String,
-      descripcion: String,
-      estadisticas: Object,
-      equipado: {
-        type: Boolean,
-        default: false
-      }
-    }],
-    habilidades: [{
-      nombre: String,
-      descripcion: String,
-      nivel: { type: Number, default: 1 },
-      puntosSinAsignar: { type: Number, default: 0 }
-    }],
-    estrategia: {
-      type: String,
-      default: ''
-    },
-    objetivos: [{
-      descripcion: String,
-      completado: {
-        type: Boolean,
-        default: false
-      }
-    }]
-  },
+  buildRPG: buildRPGSchema,
   
   // Metadatos comunes
   tags: [{
