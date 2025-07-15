@@ -441,6 +441,106 @@ const postController = {
       console.error('Error actualizando post:', error);
       res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
     }
+  },
+
+  // Obtener posts de un usuario específico
+  obtenerPostsUsuario: async (req, res) => {
+    try {
+      const { usuarioId } = req.params;
+      
+      const posts = await Post.find({ 
+        autor: usuarioId,
+        esComentario: false  // Solo posts principales, no comentarios
+      })
+        .populate('autor', 'username avatar')
+        .populate('videojuego', 'nombre imagen')
+        .populate({
+          path: 'comentarios',
+          populate: [
+            {
+              path: 'autor',
+              select: 'username avatar'
+            },
+            {
+              path: 'videojuego',
+              select: 'nombre imagen'
+            }
+          ]
+        })
+        .sort({ createdAt: -1 });
+
+      res.json(posts);
+    } catch (error) {
+      console.error('Error obteniendo posts del usuario:', error);
+      res.status(500).json({ mensaje: 'Error del servidor' });
+    }
+  },
+
+  // Obtener posts que le gustaron a un usuario
+  obtenerPostsLikeados: async (req, res) => {
+    try {
+      const { usuarioId } = req.params;
+      
+      const posts = await Post.find({ 
+        'likes.usuario': usuarioId,
+        esComentario: false  // Solo posts principales, no comentarios
+      })
+        .populate('autor', 'username avatar')
+        .populate('videojuego', 'nombre imagen')
+        .populate({
+          path: 'comentarios',
+          populate: [
+            {
+              path: 'autor',
+              select: 'username avatar'
+            },
+            {
+              path: 'videojuego',
+              select: 'nombre imagen'
+            }
+          ]
+        })
+        .sort({ createdAt: -1 });
+
+      res.json(posts);
+    } catch (error) {
+      console.error('Error obteniendo posts likeados:', error);
+      res.status(500).json({ mensaje: 'Error del servidor' });
+    }
+  },
+
+  // Obtener comentarios de un usuario específico
+  obtenerComentariosUsuario: async (req, res) => {
+    try {
+      const { usuarioId } = req.params;
+      
+      const comments = await Post.find({ 
+        autor: usuarioId,
+        esComentario: true  // Solo comentarios
+      })
+        .populate('autor', 'username avatar')
+        .populate('videojuego', 'nombre imagen')
+        .populate({
+          path: 'postPadre',
+          select: 'contenido autor videojuego',
+          populate: [
+            {
+              path: 'autor',
+              select: 'username avatar'
+            },
+            {
+              path: 'videojuego',
+              select: 'nombre imagen'
+            }
+          ]
+        })
+        .sort({ createdAt: -1 });
+
+      res.json(comments);
+    } catch (error) {
+      console.error('Error obteniendo comentarios del usuario:', error);
+      res.status(500).json({ mensaje: 'Error del servidor' });
+    }
   }
 };
 

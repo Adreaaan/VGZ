@@ -33,7 +33,7 @@ const misNotasController = {
         titulo,
         tipoNota: tipoNota,
         videojuego,
-        esPrivada: esPrivada || false,
+        esPublica: !esPrivada, // Convert esPrivada to esPublica
         usuario: req.userId
       };
 
@@ -174,7 +174,7 @@ const misNotasController = {
 
       // Actualizar campos básicos
       if (titulo) nota.titulo = titulo;
-      if (esPrivada !== undefined) nota.esPrivada = esPrivada;
+      if (esPrivada !== undefined) nota.esPublica = !esPrivada; // Convert esPrivada to esPublica
 
       // Actualizar contenido según el tipo
       if (nota.tipoNota === 'bloc_notas' && contenido?.texto) {
@@ -253,6 +253,25 @@ const misNotasController = {
       res.json({ mensaje: 'Nota eliminada exitosamente' });
     } catch (error) {
       console.error('Error eliminando nota:', error);
+      res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
+    }
+  },
+
+  // Obtener notas públicas de un usuario
+  obtenerNotasPublicas: async (req, res) => {
+    try {
+      const { usuarioId } = req.params;
+      
+      const notas = await MisNotas.find({ 
+        usuario: usuarioId,
+        esPublica: true  // Changed from esPrivada: false to esPublica: true
+      })
+        .populate('videojuego', 'nombre imagen desarrollador')
+        .sort({ createdAt: -1 });
+
+      res.json(notas);
+    } catch (error) {
+      console.error('Error obteniendo notas públicas:', error);
       res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
     }
   }

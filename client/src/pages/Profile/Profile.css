@@ -1,0 +1,278 @@
+.profile-container {
+  display: flex;
+  min-height: 100vh;
+  background: #15202b;
+  justify-content: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100vw;
+}
+
+.main-content {
+  flex: 1;
+  max-width: 800px;
+  border-left: 1px solid #2f3336;
+  border-right: 1px solid #2f3336;
+  min-height: 100vh;
+  background: #15202b;
+}
+
+.profile-header {
+  border-bottom: 1px solid #2f3336;
+}
+
+.profile-banner {
+  height: 200px;
+  background: linear-gradient(135deg, #f56500, #fd8c00);
+  position: relative;
+}
+
+.profile-info {
+  position: absolute;
+  bottom: -60px;
+  left: 0;
+  right: 0;
+  padding: 0 20px;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.profile-avatar {
+  position: relative;
+  z-index: 2;
+}
+
+.avatar-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid #15202b;
+  object-fit: cover;
+}
+
+.profile-details {
+  flex: 1;
+  padding-top: 60px;
+}
+
+.profile-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.profile-handle {
+  color: #71767b;
+  margin: 4px 0 12px 0;
+  font-size: 0.9rem;
+}
+
+.profile-bio {
+  color: #ffffff;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.profile-stats {
+  display: flex;
+  gap: 20px;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.stat span {
+  color: #71767b;
+  font-size: 0.9rem;
+}
+
+.profile-actions {
+  padding-top: 60px;
+}
+
+.follow-btn {
+  background: #f56500;
+  color: white;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.follow-btn:hover {
+  background: #fd8c00;
+}
+
+.follow-btn.following {
+  background: #1e3a5f;
+  border: 1px solid #1e3a5f;
+}
+
+.follow-btn.following:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+.follow-btn.following .follow-text {
+  transition: opacity 0.2s ease;
+}
+
+.follow-btn.following:hover .follow-text {
+  opacity: 0;
+}
+
+.follow-btn.following::after {
+  content: 'Dejar de seguir';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
+}
+
+.follow-btn.following:hover::after {
+  opacity: 1;
+}
+
+.profile-tabs {
+  display: flex;
+  border-bottom: 1px solid #2f3336;
+  margin-top: 80px;
+}
+
+.tab {
+  flex: 1;
+  background: none;
+  border: none;
+  color: #71767b;
+  padding: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  position: relative;
+}
+
+.tab:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tab.active {
+  color: #f56500;
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  height: 3px;
+  background: #f56500;
+}
+
+.profile-content {
+  min-height: 400px;
+}
+
+.posts-feed,
+.liked-posts-feed {
+  padding: 0;
+}
+
+.public-notes-feed {
+  padding: 20px;
+}
+
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+}
+
+.empty-feed {
+  text-align: center;
+  padding: 60px 20px;
+  color: #71767b;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.empty-feed h3 {
+  color: #ffffff;
+  margin-bottom: 12px;
+  font-size: 1.5rem;
+}
+
+.empty-feed p {
+  max-width: 400px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .profile-banner {
+    height: 150px;
+  }
+  
+  .profile-info {
+    flex-direction: column;
+    align-items: flex-start;
+    bottom: -80px;
+  }
+  
+  .avatar-image {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .profile-details {
+    padding-top: 20px;
+  }
+  
+  .profile-actions {
+    padding-top: 20px;
+    align-self: flex-end;
+  }
+  
+  .profile-tabs {
+    margin-top: 100px;
+  }
+  
+  .tab {
+    font-size: 0.9rem;
+    padding: 12px 8px;
+  }
+  
+  .notes-grid {
+    grid-template-columns: 1fr;
+  }
+}

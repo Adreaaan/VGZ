@@ -273,25 +273,37 @@ const videojuegoController = {
     }
   },
 
-  // Obtener estadísticas de valoraciones
+  // Obtener estadísticas de un videojuego
   obtenerEstadisticas: async (req, res) => {
     try {
-      const videojuego = await Videojuego.findById(req.params.id);
-      if (!videojuego) {
-        return res.status(404).json({ mensaje: 'Videojuego no encontrado' });
-      }
+      const { id } = req.params;
       
-      const estadisticas = {
-        valoraciones: videojuego.valoraciones,
-        porcentajes: videojuego.porcentajesValoracion,
-        totalValoraciones: videojuego.valoraciones.loRecomiendo + 
-                          videojuego.valoraciones.noLoRecomiendo + 
-                          videojuego.valoraciones.meh
+      // Obtener valoraciones de posts
+      const posts = await Post.find({
+        videojuego: id,
+        valoracionJuego: { $exists: true, $ne: null }
+      });
+
+      const valoraciones = {
+        loRecomiendo: 0,
+        noLoRecomiendo: 0,
+        meh: 0
       };
-      
-      res.json(estadisticas);
+
+      posts.forEach(post => {
+        if (post.valoracionJuego === 'lo_recomiendo') {
+          valoraciones.loRecomiendo++;
+        } else if (post.valoracionJuego === 'no_lo_recomiendo') {
+          valoraciones.noLoRecomiendo++;
+        } else if (post.valoracionJuego === 'meh') {
+          valoraciones.meh++;
+        }
+      });
+
+      res.json({ valoraciones });
     } catch (error) {
-      res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
+      console.error('Error obteniendo estadísticas:', error);
+      res.status(500).json({ mensaje: 'Error del servidor' });
     }
   },
 

@@ -195,7 +195,7 @@ const NoteCard = ({ note, onDelete, onUpdate }) => {
         <div className="note-content">
           <h3 className="note-title">
             {note.titulo}
-            {(note.esPrivada || !note.esPublica) && (
+            {(!note.esPublica || note.esPrivada) && (
               <span className="private-badge">🔒</span>
             )}
           </h3>

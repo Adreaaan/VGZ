@@ -47,13 +47,14 @@ app.get('/api/posts/:id', auth, postController.obtenerPost);
 app.post('/api/posts', auth, postController.crearPost);
 app.post('/api/posts/:id/like', auth, postController.toggleLike);
 app.delete('/api/posts/:id', auth, postController.eliminarPost);
+app.get('/api/posts/usuario/:usuarioId', auth, postController.obtenerPostsUsuario);
+app.get('/api/posts/liked/:usuarioId', auth, postController.obtenerPostsLikeados);
 
 // Rutas de videojuegos
-app.get('/api/videojuegos', auth, videojuegoController.obtenerVideojuegos);
-app.get('/api/videojuegos/buscar', auth, videojuegoController.buscarVideojuegos);
-app.get('/api/videojuegos/genres', auth, videojuegoController.obtenerGeneros);
-app.get('/api/videojuegos/developers', auth, videojuegoController.obtenerDesarrolladores);
-app.get('/api/videojuegos/:id', auth, videojuegoController.obtenerVideojuegoPorId);
+app.get('/api/videojuegos', videojuegoController.obtenerVideojuegos);
+app.get('/api/videojuegos/buscar', videojuegoController.buscarVideojuegos);
+app.get('/api/videojuegos/:id', videojuegoController.obtenerVideojuegoPorId);
+app.get('/api/videojuegos/:id/estadisticas', auth, videojuegoController.obtenerEstadisticas);
 
 // Rutas de usuarios
 app.get('/api/usuarios/buscar', auth, usuarioController.buscarUsuarios);
@@ -65,6 +66,7 @@ app.put('/api/usuarios/perfil', auth, usuarioController.actualizarPerfil);
 
 // Rutas de notas
 app.get('/api/notas', auth, misNotasController.obtenerNotas);
+app.get('/api/notas/publicas/:usuarioId', auth, misNotasController.obtenerNotasPublicas);
 app.get('/api/notas/:id', auth, misNotasController.obtenerNotaPorId);
 app.post('/api/notas', auth, misNotasController.crearNota);
 app.put('/api/notas/:id', auth, misNotasController.actualizarNota);

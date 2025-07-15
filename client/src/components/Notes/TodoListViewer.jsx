@@ -46,10 +46,13 @@ const TodoListViewer = ({ note, isEditing, onSave, onCancel, loading }) => {
       setTodos(note.contenido.todos);
     }
     
-    if (note?.esPrivada !== undefined) {
-      setIsPrivate(note.esPrivada);
-    } else if (note?.esPublica !== undefined) {
+    // Fix privacy state - if esPublica exists, convert to isPrivate
+    if (note?.esPublica !== undefined) {
       setIsPrivate(!note.esPublica);
+    } else if (note?.esPrivada !== undefined) {
+      setIsPrivate(note.esPrivada);
+    } else {
+      setIsPrivate(false); // Default to public (not private)
     }
   }, [note]);
 

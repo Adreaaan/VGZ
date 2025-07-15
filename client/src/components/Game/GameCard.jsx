@@ -51,13 +51,15 @@ const GameCard = ({ game, userRating, showAsPostCard = false, onGameClick }) => 
   }, []);
 
   const handleCardClick = useCallback((e) => {
-    console.log('GameCard clicked', game.nombre, 'onGameClick:', onGameClick); // Debug
     e.preventDefault();
     e.stopPropagation();
     if (onGameClick) {
-      onGameClick(game);
-    } else {
-      console.log('onGameClick not defined'); // Debug
+      // Asegurar que el juego tenga la estructura correcta
+      const gameToPass = {
+        ...game,
+        valoraciones: game.valoraciones || { loRecomiendo: 0, noLoRecomiendo: 0, meh: 0 }
+      };
+      onGameClick(gameToPass);
     }
   }, [onGameClick, game]);
 
@@ -73,6 +75,7 @@ const GameCard = ({ game, userRating, showAsPostCard = false, onGameClick }) => 
             src={game.imagen || '/placeholder-game.jpg'} 
             alt={game.nombre}
             onError={handleImageError}
+            
           />
         </div>
         
@@ -90,35 +93,43 @@ const GameCard = ({ game, userRating, showAsPostCard = false, onGameClick }) => 
 
   return (
     <div className="game-card" onClick={handleCardClick}>
-      <div className="game-image">
+      <div className="game-image-container">
         <img 
           src={game.imagen || '/placeholder-game.jpg'} 
           alt={game.nombre}
+          className="game-image"
           onError={(e) => {
             e.target.src = '/placeholder-game.jpg';
           }}
+          
         />
-        <div className="game-genres">
-          {(game.generos || []).slice(0, 2).map((genre, index) => (
-            <span key={index} className="genre-tag">{genre}</span>
-          ))}
+        <div className="game-overlay">
+          <div className="game-genres">
+            {(game.generos || []).slice(0, 2).map((genre, index) => (
+              <span key={index} className="genre-tag">{genre}</span>
+            ))}
+          </div>
         </div>
       </div>
       
-      <div className="game-info">
-        <h3 className="game-title">{game.nombre}</h3>
-        <div className="main-rating" style={{ color: mainRating.color }}>
-          {mainRating.type}
-        </div>
-        {mainRating.total > 0 && (
-          <div className="rating-count" style={{ color: '#a0aec0', fontSize: '0.9em', marginTop: '4px' }}>
-            {mainRating.total} valoraciones
+      <div className="game-content">
+        <div className="game-header">
+          <h3 className="game-title">{game.nombre}</h3>
+          <div className="game-meta">
+            <span className="developer">🏢 {game.desarrollador}</span>
+            <span className="release-date">📅 {formattedDate}</span>
           </div>
-        )}
+        </div>
         
-        <div className="game-details">
-          <p className="release-date">📅 {formattedDate}</p>
-          <p className="developer">🏢 {game.desarrollador}</p>
+        <div className="game-rating-section">
+          <div className="main-rating" style={{ color: mainRating.color }}>
+            {mainRating.type}
+          </div>
+          {mainRating.total > 0 && (
+            <div className="rating-details">
+              <span className="rating-count">{mainRating.total} valoraciones</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

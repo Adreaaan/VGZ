@@ -101,7 +101,9 @@ const GameDetailModal = ({ isOpen, onClose, game }) => {
   }, [isOpen, game, fetchFullGameData, fetchGamePosts]);
 
   const mainRating = useMemo(() => {
-    const { loRecomiendo, noLoRecomiendo, meh } = game?.valoraciones || {};
+    // Usar fullGameData si está disponible, sino usar game
+    const gameData = fullGameData || game;
+    const { loRecomiendo, noLoRecomiendo, meh } = gameData?.valoraciones || {};
     const total = (loRecomiendo || 0) + (noLoRecomiendo || 0) + (meh || 0);
     
     if (total === 0) return { type: 'Sin valoraciones', percentage: 0, color: '#a0aec0', total: 0 };
@@ -121,7 +123,7 @@ const GameDetailModal = ({ isOpen, onClose, game }) => {
     } else {
       return { type: `😐 ${percentages.meh}% Meh`, percentage: percentages.meh, color: '#a0aec0', total };
     }
-  }, [game?.valoraciones]);
+  }, [fullGameData, game]);
 
   const displayGame = fullGameData || game;
 
@@ -260,11 +262,11 @@ const GameDetailModal = ({ isOpen, onClose, game }) => {
                         <div className="rating-progress">
                           <div 
                             className="rating-fill positive" 
-                            style={{ width: `${(game.valoraciones?.loRecomiendo || 0) / mainRating.total * 100}%` }}
+                            style={{ width: `${((fullGameData || game).valoraciones?.loRecomiendo || 0) / mainRating.total * 100}%` }}
                           ></div>
                         </div>
-                        <span className="rating-percentage">{Math.round((game.valoraciones?.loRecomiendo || 0) / mainRating.total * 100)}%</span>
-                        <span className="rating-count">({game.valoraciones?.loRecomiendo || 0})</span>
+                        <span className="rating-percentage">{Math.round(((fullGameData || game).valoraciones?.loRecomiendo || 0) / mainRating.total * 100)}%</span>
+                        <span className="rating-count">({(fullGameData || game).valoraciones?.loRecomiendo || 0})</span>
                       </div>
                       
                       <div className="rating-bar">
@@ -272,11 +274,11 @@ const GameDetailModal = ({ isOpen, onClose, game }) => {
                         <div className="rating-progress">
                           <div 
                             className="rating-fill neutral" 
-                            style={{ width: `${(game.valoraciones?.meh || 0) / mainRating.total * 100}%` }}
+                            style={{ width: `${((fullGameData || game).valoraciones?.meh || 0) / mainRating.total * 100}%` }}
                           ></div>
                         </div>
-                        <span className="rating-percentage">{Math.round((game.valoraciones?.meh || 0) / mainRating.total * 100)}%</span>
-                        <span className="rating-count">({game.valoraciones?.meh || 0})</span>
+                        <span className="rating-percentage">{Math.round(((fullGameData || game).valoraciones?.meh || 0) / mainRating.total * 100)}%</span>
+                        <span className="rating-count">({(fullGameData || game).valoraciones?.meh || 0})</span>
                       </div>
                       
                       <div className="rating-bar">
@@ -284,11 +286,11 @@ const GameDetailModal = ({ isOpen, onClose, game }) => {
                         <div className="rating-progress">
                           <div 
                             className="rating-fill negative" 
-                            style={{ width: `${(game.valoraciones?.noLoRecomiendo || 0) / mainRating.total * 100}%` }}
+                            style={{ width: `${((fullGameData || game).valoraciones?.noLoRecomiendo || 0) / mainRating.total * 100}%` }}
                           ></div>
                         </div>
-                        <span className="rating-percentage">{Math.round((game.valoraciones?.noLoRecomiendo || 0) / mainRating.total * 100)}%</span>
-                        <span className="rating-count">({game.valoraciones?.noLoRecomiendo || 0})</span>
+                        <span className="rating-percentage">{Math.round(((fullGameData || game).valoraciones?.noLoRecomiendo || 0) / mainRating.total * 100)}%</span>
+                        <span className="rating-count">({(fullGameData || game).valoraciones?.noLoRecomiendo || 0})</span>
                       </div>
                     </div>
                   ) : (

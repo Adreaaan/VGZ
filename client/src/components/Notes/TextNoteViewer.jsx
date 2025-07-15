@@ -12,10 +12,13 @@ const TextNoteViewer = ({ note, isEditing, onSave, onCancel, loading }) => {
     } else if (note?.contenido?.texto) {
       setContent(note.contenido.texto);
     }
-    if (note?.esPrivada !== undefined) {
-      setIsPrivate(note.esPrivada);
-    } else if (note?.esPublica !== undefined) {
+    // Fix privacy state - if esPublica exists, convert to isPrivate
+    if (note?.esPublica !== undefined) {
       setIsPrivate(!note.esPublica);
+    } else if (note?.esPrivada !== undefined) {
+      setIsPrivate(note.esPrivada);
+    } else {
+      setIsPrivate(false); // Default to public (not private)
     }
   }, [note]);
 

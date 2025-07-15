@@ -217,7 +217,7 @@ const PostCard = ({ post, onUpdate, onCommentClick, isInModal = false, isComment
           game={post.videojuego} 
           userRating={post.valoracionJuego}
           showAsPostCard={true}
-          onGameClick={onGameClick}
+          onGameClick={onGameClick} // Asegurar que se pase la función
         />
       </div>
 

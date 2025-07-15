@@ -6,6 +6,7 @@ import Home from './pages/Home/Home';
 import Games from './pages/Games/Games';
 import Notifications from './pages/Notifications/Notifications';
 import Notes from './pages/Notes/Notes';
+import Profile from './pages/Profile/Profile';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import './App.css';
 
@@ -45,6 +46,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Notes />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile/:userId?"
+            element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             }
           />

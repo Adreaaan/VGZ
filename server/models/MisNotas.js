@@ -108,7 +108,7 @@ const misNotasSchema = new mongoose.Schema({
   },
   esPublica: {
     type: Boolean,
-    default: false
+    default: true  // Cambiado de false a true - las notas son públicas por defecto
   },
   
   // Para bloc de notas normal
