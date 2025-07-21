@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Widgets.css';
 
 const SuggestedFollows = ({ onUserFollowed }) => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [followingUsers, setFollowingUsers] = useState(new Set());
@@ -91,9 +93,16 @@ const SuggestedFollows = ({ onUserFollowed }) => {
     }
   }, [followingUsers, onUserFollowed]);
 
+  const handleUserClick = useCallback((userId) => {
+    navigate(`/profile/${userId}`);
+  }, [navigate]);
+
   const renderUserItem = useCallback((user) => (
     <div key={user._id} className="suggested-user">
-      <div className="user-avatar-small">
+      <div 
+        className="user-avatar-small"
+        onClick={() => handleUserClick(user._id)}
+      >
         {user.avatar ? (
           <img src={user.avatar} alt={user.username} />
         ) : (
@@ -102,19 +111,25 @@ const SuggestedFollows = ({ onUserFollowed }) => {
           </div>
         )}
       </div>
-      <div className="user-info-small">
+      <div 
+        className="user-info-small"
+        onClick={() => handleUserClick(user._id)}
+      >
         <div className="username-small">@{user.username}</div>
       </div>
       <button 
         className={`follow-btn ${followingUsers.has(user._id) ? 'following' : ''}`}
-        onClick={() => handleFollowUser(user._id)}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleFollowUser(user._id);
+        }}
       >
         <span className="follow-text">
           {followingUsers.has(user._id) ? 'Siguiendo' : 'Seguir'}
         </span>
       </button>
     </div>
-  ), [followingUsers, handleFollowUser]);
+  ), [followingUsers, handleFollowUser, handleUserClick]);
 
   const memoizedUsers = useMemo(() => users, [users]);
 
@@ -130,9 +145,13 @@ const SuggestedFollows = ({ onUserFollowed }) => {
   return (
     <div className="widget">
       <h3>A quién seguir</h3>
-      <div className="suggested-users">
-        {memoizedUsers.map(renderUserItem)}
-      </div>
+      {loading ? (
+        <div className="loading">Cargando sugerencias...</div>
+      ) : (
+        <div className="suggested-users">
+          {memoizedUsers.map(renderUserItem)}
+        </div>
+      )}
     </div>
   );
 };

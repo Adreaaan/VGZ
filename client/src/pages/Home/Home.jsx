@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Layout/Sidebar';
 import PostCard from '../../components/Post/PostCard';
 import CreatePost from '../../components/Post/CreatePost';
@@ -15,6 +16,7 @@ import { useModalStack } from '../../hooks/useModalStack';
 import './Home.css';
 
 const Home = () => {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [activeTab, setActiveTab] = useState('siguiendo');
   const [searchTerm, setSearchTerm] = useState('');
@@ -304,6 +306,11 @@ const Home = () => {
     setSelectedGame(null);
   }, []);
 
+  const handleUserClick = useCallback((userId) => {
+    navigate(`/profile/${userId}`);
+    closeSearch(); // Cerrar búsqueda al navegar
+  }, [navigate, closeSearch]);
+
   const renderContent = () => {
     if (postsLoading && posts.length === 0) {
       return (
@@ -389,7 +396,10 @@ const Home = () => {
                     <div className="users-list">
                       {searchResults.map(user => (
                         <div key={user._id} className="user-result">
-                          <div className="user-avatar-small">
+                          <div 
+                            className="user-avatar-small"
+                            onClick={() => handleUserClick(user._id)}
+                          >
                             {user.avatar ? (
                               <img src={user.avatar} alt={user.username} />
                             ) : (
@@ -398,13 +408,19 @@ const Home = () => {
                               </div>
                             )}
                           </div>
-                          <div className="user-info-small">
+                          <div 
+                            className="user-info-small"
+                            onClick={() => handleUserClick(user._id)}
+                          >
                             <div className="username-small">@{user.username}</div>
                             {user.bio && <div className="bio-small">{user.bio}</div>}
                           </div>
                           <button 
                             className={`follow-btn ${followingUsers.has(user._id) ? 'following' : ''}`}
-                            onClick={() => handleFollowUser(user._id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleFollowUser(user._id);
+                            }}
                           >
                             <span className="follow-text">
                               {followingUsers.has(user._id) ? 'Siguiendo' : 'Seguir'}

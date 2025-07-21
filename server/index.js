@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/database');
 const { errorHandler, notFound } = require('./middleware');
+const fs = require('fs');
+const path = require('path');
 
 // Importar controladores
 const usuarioController = require('./controllers/usuarioController');
@@ -13,6 +15,7 @@ const notificationController = require('./controllers/notificationController');
 
 // Importar middleware de autenticación
 const { auth } = require('./middleware');
+const upload = require('./middleware/upload');
 
 const app = express();
 const PORT = 5002; // Cambiar a puerto libre
@@ -63,6 +66,7 @@ app.get('/api/usuarios/:id', auth, usuarioController.obtenerPerfil);
 app.post('/api/usuarios/:usuarioId/seguir', auth, usuarioController.seguirUsuario);
 app.delete('/api/usuarios/:usuarioId/seguir', auth, usuarioController.dejarDeSeguir);
 app.put('/api/usuarios/perfil', auth, usuarioController.actualizarPerfil);
+app.post('/api/usuarios/upload-avatar', auth, upload.single('avatar'), usuarioController.uploadAvatar);
 
 // Rutas de notas
 app.get('/api/notas', auth, misNotasController.obtenerNotas);
@@ -98,6 +102,12 @@ app.get('/placeholder-game.jpg', (req, res) => {
 });
 
 console.log('Rutas configuradas correctamente');
+
+// Crear directorio de uploads si no existe
+const uploadsDir = path.join(__dirname, 'public', 'uploads', 'avatars');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // Middleware de manejo de errores
 app.use(notFound);

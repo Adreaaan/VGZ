@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useUser } from '../../contexts/UserContext';
 import './Sidebar.css';
 
 const Sidebar = () => {
   const location = useLocation();
-  const [user] = useState(() => JSON.parse(localStorage.getItem('user') || '{}'));
+  const { user } = useUser();
   const [unreadCount, setUnreadCount] = useState(0);
 
   const fetchUnreadCount = useCallback(async () => {
@@ -75,16 +76,16 @@ const Sidebar = () => {
       <div className="sidebar-footer">
         <div className="user-profile">
           <div className="user-avatar">
-            {user.avatar ? (
+            {user?.avatar ? (
               <img src={user.avatar} alt={user.username} />
             ) : (
               <div className="avatar-placeholder">
-                {user.username?.charAt(0).toUpperCase()}
+                {user?.username?.charAt(0).toUpperCase()}
               </div>
             )}
           </div>
           <div className="user-details">
-            <div className="username">@{user.username}</div>
+            <div className="username">@{user?.username}</div>
           </div>
         </div>
         <button onClick={handleLogout} className="logout-btn">

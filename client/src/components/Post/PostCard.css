@@ -88,6 +88,12 @@
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.user-avatar:hover {
+  opacity: 0.8;
 }
 
 .user-avatar img {
@@ -118,6 +124,13 @@
   color: #ffffff;
   font-weight: 700;
   font-size: 15px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.username:hover {
+  color: #f56500;
+  text-decoration: underline;
 }
 
 .post-date {

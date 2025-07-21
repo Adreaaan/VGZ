@@ -1,8 +1,16 @@
 import React, { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PostCard from './PostCard';
 import './PostDetailModal.css';
 
 const PostDetailModal = ({ isOpen, onClose, post, onCommentClick, onReplyClick, onGameClick }) => {
+  const navigate = useNavigate();
+
+  const handleUserClick = useCallback((userId) => {
+    navigate(`/profile/${userId}`);
+    onClose(); // Cerrar el modal al navegar
+  }, [navigate, onClose]);
+
   const handleOverlayClick = useCallback((e) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -37,6 +45,7 @@ const PostDetailModal = ({ isOpen, onClose, post, onCommentClick, onReplyClick, 
             onCommentClick={onCommentClick}
             onReplyClick={onReplyClick}
             onGameClick={onGameClick}
+            onUserClick={handleUserClick}
             isInModal={true}
           />
           

@@ -170,11 +170,37 @@ const usuarioController = {
   // Actualizar perfil
   actualizarPerfil: async (req, res) => {
     try {
-      const { bio, avatar, esPrivado } = req.body;
+      const { bio, avatar, esPrivado, username } = req.body;
+      
+      // Validar username si se está actualizando
+      if (username) {
+        const existingUser = await Usuario.findOne({ 
+          username, 
+          _id: { $ne: req.userId } 
+        });
+        
+        if (existingUser) {
+          return res.status(400).json({ mensaje: 'El nombre de usuario ya está en uso' });
+        }
+        
+        // Validar formato del username
+        const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
+        if (!usernameRegex.test(username)) {
+          return res.status(400).json({ 
+            mensaje: 'El nombre de usuario debe tener entre 3-30 caracteres y solo puede contener letras, números y guiones bajos' 
+          });
+        }
+      }
+      
+      const updateData = {};
+      if (bio !== undefined) updateData.bio = bio;
+      if (avatar !== undefined) updateData.avatar = avatar;
+      if (esPrivado !== undefined) updateData.esPrivado = esPrivado;
+      if (username !== undefined) updateData.username = username;
       
       const usuario = await Usuario.findByIdAndUpdate(
         req.userId,
-        { bio, avatar, esPrivado },
+        updateData,
         { new: true }
       ).select('-password');
       
@@ -229,7 +255,35 @@ const usuarioController = {
     } catch (error) {
       res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
     }
-  }
+  },
+
+  // Upload avatar
+  uploadAvatar: async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ mensaje: 'No se ha subido ningún archivo' });
+      }
+
+      // Construir URL del avatar
+      const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+      
+      // Actualizar usuario con nueva URL de avatar
+      const usuario = await Usuario.findByIdAndUpdate(
+        req.userId,
+        { avatar: avatarUrl },
+        { new: true }
+      ).select('-password');
+
+      res.json({
+        mensaje: 'Avatar actualizado correctamente',
+        avatarUrl: avatarUrl,
+        usuario: usuario
+      });
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
+    }
+  },
 };
 
 module.exports = usuarioController;

@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import GameCard from '../Game/GameCard';
 import './PostCard.css';
+import { useUser } from '../../contexts/UserContext';
 
-const PostCard = ({ post, onUpdate, onCommentClick, isInModal = false, isComment = false, showActions = true, onReplyClick, onGameClick }) => {
+const PostCard = ({ post, onUpdate, onCommentClick, onReplyClick, onGameClick, isInModal = false, isComment = false, showActions = true }) => {
+  const { user: currentUser } = useUser();
+  const navigate = useNavigate();
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -10,14 +14,6 @@ const PostCard = ({ post, onUpdate, onCommentClick, isInModal = false, isComment
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Memoized values
-  const currentUser = useMemo(() => {
-    try {
-      return JSON.parse(localStorage.getItem('user') || '{}');
-    } catch {
-      return {};
-    }
-  }, []);
-
   const isOwnPost = useMemo(() => {
     return post.autor?._id === currentUser.id;
   }, [post.autor?._id, currentUser.id]);
@@ -120,6 +116,11 @@ const PostCard = ({ post, onUpdate, onCommentClick, isInModal = false, isComment
     }
   }, [onCommentClick, post, isInModal, isComment]);
 
+  const handleUserClick = useCallback((e) => {
+    e.stopPropagation(); // Evitar que se active el click del post
+    navigate(`/profile/${post.autor._id}`);
+  }, [navigate, post.autor._id]);
+
   const renderOptionsMenu = () => {
     if (!isOwnPost) return null;
 
@@ -183,26 +184,37 @@ const PostCard = ({ post, onUpdate, onCommentClick, isInModal = false, isComment
     );
   };
 
+  // Usar avatar actualizado si es el post del usuario actual
+  const avatarToShow = post.autor._id === currentUser?.id && currentUser?.avatar 
+    ? currentUser.avatar 
+    : post.autor.avatar;
+
+  const postCardClass = `post-card ${isInModal ? 'in-modal' : ''} ${isComment ? 'is-comment' : ''}`;
+
   return (
     <div 
-      className={`post-card ${isInModal ? 'in-modal' : ''} ${isComment ? 'is-comment' : ''}`}
+      className={postCardClass}
       onClick={handlePostClick}
       style={{ cursor: (!isInModal || isComment) ? 'pointer' : 'default' }}
     >
       <div className="post-header">
         <div className="user-info">
-          <div className="user-avatar">
-            {post.autor?.avatar ? (
-              <img src={post.autor.avatar} alt={post.autor.username} />
+          <div className="user-avatar" onClick={handleUserClick}>
+            {avatarToShow ? (
+              <img src={avatarToShow} alt={post.autor.username} />
             ) : (
               <div className="avatar-placeholder">
-                {post.autor?.username?.charAt(0).toUpperCase()}
+                {post.autor.username?.charAt(0).toUpperCase()}
               </div>
             )}
           </div>
           <div className="user-details">
-            <span className="username">{post.autor?.username}</span>
-            <span className="post-date">@{post.autor?.username} · {formattedDate}</span>
+            <span className="username" onClick={handleUserClick}>
+              {post.autor.username}
+            </span>
+            <span className="post-date">
+              • {formattedDate}
+            </span>
           </div>
         </div>
         {renderOptionsMenu()}
