@@ -37,7 +37,6 @@ const Sidebar = () => {
     { icon: '🏠', label: 'Inicio', path: '/', key: 'home' },
     { icon: '🎮', label: 'Juegos', path: '/games', key: 'games' },
     { icon: '🔔', label: 'Notificaciones', path: '/notifications', key: 'notifications', badge: unreadCount },
-    { icon: '💬', label: 'Mensajes', path: '/messages', key: 'messages' },
     { icon: '📝', label: 'Mis Notas', path: '/notes', key: 'notes' },
     { icon: '👤', label: 'Perfil', path: `/profile/${user.id}`, key: 'profile' },
     { icon: '⚙️', label: 'Configuración', path: '/settings', key: 'settings' }

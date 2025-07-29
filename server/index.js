@@ -56,8 +56,12 @@ app.get('/api/posts/liked/:usuarioId', auth, postController.obtenerPostsLikeados
 // Rutas de videojuegos
 app.get('/api/videojuegos', videojuegoController.obtenerVideojuegos);
 app.get('/api/videojuegos/buscar', videojuegoController.buscarVideojuegos);
-app.get('/api/videojuegos/:id', videojuegoController.obtenerVideojuegoPorId);
+app.get('/api/videojuegos/genres', videojuegoController.obtenerSoloGeneros);
+app.get('/api/videojuegos/developers', videojuegoController.obtenerSoloDesarrolladores);
 app.get('/api/videojuegos/:id/estadisticas', auth, videojuegoController.obtenerEstadisticas);
+app.get('/api/videojuegos/:id', videojuegoController.obtenerVideojuegoPorId);
+app.post('/api/videojuegos', auth, videojuegoController.crearVideojuego);
+app.put('/api/videojuegos/:id', auth, videojuegoController.actualizarVideojuego);
 
 // Rutas de usuarios
 app.get('/api/usuarios/buscar', auth, usuarioController.buscarUsuarios);

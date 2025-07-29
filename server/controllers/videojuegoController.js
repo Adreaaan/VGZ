@@ -42,11 +42,7 @@ const videojuegoController = {
         return res.json([]);
       }
       
-      // Obtener una muestra para ver la estructura
-      const sampleVideojuego = await Videojuego.findOne();
-      console.log('Sample videojuego structure:', JSON.stringify(sampleVideojuego, null, 2));
-      
-      // Intentar usar agregación para extraer géneros
+      // Obtener géneros únicos usando agregación
       const genresAggregation = await Videojuego.aggregate([
         { $unwind: "$generos" },
         { $group: { _id: "$generos" } },
@@ -158,7 +154,7 @@ const videojuegoController = {
             // Si falla la agregación, devolver el videojuego con valoraciones vacías
             return {
               ...videojuego.toObject(),
-              valoraciones: { loRecomiendo: 0, noLoRecomiendo: 0, meh: 0 }
+              valoraciones: { loRecomiendo: 0, noRecomiendo: 0, meh: 0 }
             };
           }
         })
@@ -322,6 +318,48 @@ const videojuegoController = {
       
       res.json(videojuego);
     } catch (error) {
+      res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
+    }
+  },
+
+  // Nueva ruta para obtener solo géneros
+  obtenerSoloGeneros: async (req, res) => {
+    try {
+      console.log('Fetching genres for filters...'); // Debug
+      
+      const totalVideojuegos = await Videojuego.countDocuments();
+      console.log('Total videojuegos:', totalVideojuegos);
+      
+      if (totalVideojuegos === 0) {
+        return res.json([]);
+      }
+      
+      const genresAggregation = await Videojuego.aggregate([
+        { $unwind: "$generos" },
+        { $group: { _id: "$generos" } },
+        { $sort: { _id: 1 } }
+      ]);
+      
+      const uniqueGenres = genresAggregation.map(item => item._id).filter(genre => genre && genre.trim() !== '');
+      console.log('Unique genres for filters:', uniqueGenres);
+      
+      res.json(uniqueGenres);
+    } catch (error) {
+      console.error('Error fetching genres for filters:', error);
+      res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
+    }
+  },
+
+  // Nueva ruta para obtener solo desarrolladores
+  obtenerSoloDesarrolladores: async (req, res) => {
+    try {
+      console.log('Fetching developers for filters...'); // Debug
+      const developers = await Videojuego.distinct('desarrollador');
+      const filteredDevelopers = developers.filter(dev => dev && dev.trim() !== '');
+      console.log('Filtered developers for filters:', filteredDevelopers);
+      res.json(filteredDevelopers.sort());
+    } catch (error) {
+      console.error('Error fetching developers for filters:', error);
       res.status(500).json({ mensaje: 'Error del servidor', error: error.message });
     }
   }

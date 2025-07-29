@@ -103,6 +103,7 @@ const Games = () => {
   const handleGameSelect = useCallback((game) => {
     setSearchTerm(game.nombre);
     setShowSearchResults(false);
+    handleGameClick(game);
   }, []);
 
   const clearSearch = useCallback(() => {
