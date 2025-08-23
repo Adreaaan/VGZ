@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Sidebar from '../../components/Layout/Sidebar';
 import GameCard from '../../components/Game/GameCard';
-import GameFilters from '../../components/Games/GameFilters';
+import GameFilters from '../../components/Widgets/GameFilters';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import GameDetailModal from '../../components/Game/GameDetailModal';
 import './Games.css';

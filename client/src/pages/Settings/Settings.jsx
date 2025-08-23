@@ -299,23 +299,6 @@ const Settings = () => {
                         </div>
                       )}
                     </div>
-                    
-                    {/* O usar URL */}
-                    <div className="url-section">
-                      <span className="divider">o</span>
-                      <input
-                        type="url"
-                        id="avatar"
-                        name="avatar"
-                        value={formData.avatar}
-                        onChange={handleInputChange}
-                        placeholder="https://ejemplo.com/mi-avatar.jpg"
-                        className="input-field"
-                      />
-                      <small className="form-help">
-                        También puedes usar una URL de imagen externa
-                      </small>
-                    </div>
                   </div>
                 </div>
                 
@@ -357,28 +340,6 @@ const Settings = () => {
                 />
                 <small className="form-help">
                   Máximo 200 caracteres. {200 - formData.bio.length} restantes.
-                </small>
-              </div>
-
-              <div className="form-group">
-                <div className="checkbox-group">
-                  <input
-                    type="checkbox"
-                    id="esPrivado"
-                    name="esPrivado"
-                    checked={formData.esPrivado}
-                    onChange={handleInputChange}
-                    className="checkbox-input"
-                  />
-                  <label htmlFor="esPrivado" className="checkbox-label">
-                    <span className="checkbox-icon">
-                      {formData.esPrivado ? '🔒' : '🌍'}
-                    </span>
-                    Perfil privado
-                  </label>
-                </div>
-                <small className="form-help">
-                  Si tu perfil es privado, solo tus seguidores podrán ver tus publicaciones.
                 </small>
               </div>
 
