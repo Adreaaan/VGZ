@@ -6,16 +6,8 @@ const { errorHandler, notFound } = require('./middleware');
 const fs = require('fs');
 const path = require('path');
 
-// Importar controladores
-const usuarioController = require('./controllers/usuarioController');
-const postController = require('./controllers/postController');
-const videojuegoController = require('./controllers/videojuegoController');
-const misNotasController = require('./controllers/misNotasController');
-const notificationController = require('./controllers/notificationController');
-
-// Importar middleware de autenticación
-const { auth } = require('./middleware');
-const upload = require('./middleware/upload');
+// Importar rutas organizadas
+const apiRoutes = require('./routes');
 
 const app = express();
 const PORT = 5002; // Cambiar a puerto libre
@@ -38,53 +30,8 @@ app.get('/', (req, res) => {
   res.json({ mensaje: 'VGZ API funcionando' });
 });
 
-// Rutas de autenticación
-app.post('/api/auth/register', usuarioController.registrar);
-app.post('/api/auth/login', usuarioController.login);
-
-// Rutas de posts
-app.get('/api/posts/feed', auth, postController.obtenerFeed);
-app.get('/api/posts/explore', auth, postController.obtenerExplorar);
-app.get('/api/posts/game/:gameId', auth, postController.obtenerPostsPorJuego);
-app.get('/api/posts/:id', auth, postController.obtenerPost);
-app.post('/api/posts', auth, postController.crearPost);
-app.post('/api/posts/:id/like', auth, postController.toggleLike);
-app.delete('/api/posts/:id', auth, postController.eliminarPost);
-app.get('/api/posts/usuario/:usuarioId', auth, postController.obtenerPostsUsuario);
-app.get('/api/posts/liked/:usuarioId', auth, postController.obtenerPostsLikeados);
-
-// Rutas de videojuegos
-app.get('/api/videojuegos', videojuegoController.obtenerVideojuegos);
-app.get('/api/videojuegos/buscar', videojuegoController.buscarVideojuegos);
-app.get('/api/videojuegos/genres', videojuegoController.obtenerSoloGeneros);
-app.get('/api/videojuegos/developers', videojuegoController.obtenerSoloDesarrolladores);
-app.get('/api/videojuegos/:id/estadisticas', auth, videojuegoController.obtenerEstadisticas);
-app.get('/api/videojuegos/:id', videojuegoController.obtenerVideojuegoPorId);
-app.post('/api/videojuegos', auth, videojuegoController.crearVideojuego);
-app.put('/api/videojuegos/:id', auth, videojuegoController.actualizarVideojuego);
-
-// Rutas de usuarios
-app.get('/api/usuarios/buscar', auth, usuarioController.buscarUsuarios);
-app.get('/api/usuarios/sugeridos', auth, usuarioController.obtenerUsuariosSugeridos);
-app.get('/api/usuarios/:id', auth, usuarioController.obtenerPerfil);
-app.post('/api/usuarios/:usuarioId/seguir', auth, usuarioController.seguirUsuario);
-app.delete('/api/usuarios/:usuarioId/seguir', auth, usuarioController.dejarDeSeguir);
-app.put('/api/usuarios/perfil', auth, usuarioController.actualizarPerfil);
-app.post('/api/usuarios/upload-avatar', auth, upload.single('avatar'), usuarioController.uploadAvatar);
-
-// Rutas de notas
-app.get('/api/notas', auth, misNotasController.obtenerNotas);
-app.get('/api/notas/publicas/:usuarioId', auth, misNotasController.obtenerNotasPublicas);
-app.get('/api/notas/:id', auth, misNotasController.obtenerNotaPorId);
-app.post('/api/notas', auth, misNotasController.crearNota);
-app.put('/api/notas/:id', auth, misNotasController.actualizarNota);
-app.delete('/api/notas/:id', auth, misNotasController.eliminarNota);
-
-// Rutas de notificaciones
-app.get('/api/notifications', auth, notificationController.obtenerNotificaciones);
-app.get('/api/notifications/unread-count', auth, notificationController.obtenerContadorNoLeidas);
-app.put('/api/notifications/:notificationId/read', auth, notificationController.marcarComoLeida);
-app.put('/api/notifications/mark-all-read', auth, notificationController.marcarTodasComoLeidas);
+// Usar rutas organizadas
+app.use('/api', apiRoutes);
 
 // Servir archivos estáticos
 app.use(express.static('public'));

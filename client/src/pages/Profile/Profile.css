@@ -19,6 +19,7 @@
 
 .profile-header {
   border-bottom: 1px solid #2f3336;
+  padding-bottom: 80px; /* Espacio para el contenido absoluto */
 }
 
 .profile-banner {
@@ -69,10 +70,97 @@
   font-size: 0.9rem;
 }
 
+.profile-bio-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.profile-bio-section {
+  background: #1a202c;
+  padding: 24px;
+  margin: 0;
+  border-bottom: 1px solid #2d3748;
+  margin-top: 8px; /* Pequeño margen para separar del header */
+}
+
+.bio-icon {
+  font-size: 1.1rem;
+  color: #f56500;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
 .profile-bio {
-  color: #ffffff;
-  margin: 0 0 12px 0;
-  line-height: 1.4;
+  color: #e1e8ed;
+  margin: 0;
+  line-height: 1.5;
+  font-size: 0.95rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 12px 16px;
+  border-radius: 12px;
+  border-left: 3px solid #f56500;
+  position: relative;
+  word-wrap: break-word;
+  flex: 1;
+}
+
+.profile-bio:empty {
+  display: none;
+}
+
+.profile-bio::before {
+  content: '"';
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 1.2rem;
+  color: #f56500;
+  opacity: 0.7;
+  font-family: serif;
+}
+
+.profile-bio::after {
+  content: '"';
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 1.2rem;
+  color: #f56500;
+  opacity: 0.7;
+  font-family: serif;
+}
+
+.profile-bio-empty {
+  margin: 0;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.bio-prompt {
+  color: #9ca3af;
+  font-style: italic;
+  margin: 0;
+  padding: 12px 16px;
+  background: rgba(156, 163, 175, 0.1);
+  border: 2px dashed rgba(156, 163, 175, 0.3);
+  border-radius: 12px;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.bio-prompt:hover {
+  background: rgba(245, 101, 0, 0.1);
+  border-color: rgba(245, 101, 0, 0.3);
+  color: #f56500;
+}
+
+.bio-prompt span {
+  font-weight: 600;
 }
 
 .profile-stats {
@@ -243,6 +331,10 @@
     height: 150px;
   }
   
+  .profile-header {
+    padding-bottom: 100px; /* Más espacio en móviles */
+  }
+  
   .profile-info {
     flex-direction: column;
     align-items: flex-start;
@@ -256,6 +348,32 @@
   
   .profile-details {
     padding-top: 20px;
+  }
+  
+  .profile-bio-container {
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+  }
+  
+  .profile-bio-section {
+    padding: 20px 16px;
+    margin-top: 12px;
+  }
+  
+  .bio-icon {
+    align-self: flex-start;
+    margin-top: 0;
+  }
+  
+  .profile-bio {
+    font-size: 0.9rem;
+    padding: 10px 14px;
+  }
+  
+  .profile-bio::before,
+  .profile-bio::after {
+    font-size: 1rem;
   }
   
   .profile-actions {

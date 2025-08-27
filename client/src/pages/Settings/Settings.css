@@ -102,6 +102,31 @@
 .textarea-field {
   resize: vertical;
   min-height: 100px;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.textarea-field.bio-field {
+  min-height: 120px;
+  background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+  border: 2px solid #4a5568;
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.textarea-field.bio-field:focus {
+  border-color: #f56500;
+  box-shadow: 0 0 0 3px rgba(245, 101, 0, 0.1);
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+}
+
+.textarea-field.bio-field::placeholder {
+  color: #9ca3af;
+  font-style: italic;
 }
 
 .avatar-input-group {
@@ -198,6 +223,32 @@
   color: #71767b;
   font-size: 0.8rem;
   line-height: 1.4;
+}
+
+.bio-help {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.bio-help .character-count {
+  color: #f56500;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  background: rgba(245, 101, 0, 0.1);
+  border-radius: 6px;
+}
+
+.bio-help .character-count.warning {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.bio-help .character-count.danger {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .form-actions {

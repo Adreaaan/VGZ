@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Layout/Sidebar';
 import PostCard from '../../components/Post/PostCard';
 import NoteCard from '../../components/Notes/NoteCard';
@@ -11,6 +11,7 @@ import './Profile.css';
 
 const Profile = () => {
   const { userId } = useParams();
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [activeTab, setActiveTab] = useState('posts');
@@ -278,17 +279,20 @@ const Profile = () => {
             <div className="profile-info">
               <div className="profile-avatar">
                 <img 
-                  src={user?.fotoPerfil || '/default-avatar.png'} 
+                  src={user?.avatar ? 
+                    (user.avatar.startsWith('http') ? user.avatar : `http://localhost:5002${user.avatar}`) 
+                    : '/default-avatar.png'
+                  } 
                   alt={user?.username}
                   className="avatar-image"
+                  onError={(e) => {
+                    e.target.src = '/default-avatar.png';
+                  }}
                 />
               </div>
               <div className="profile-details">
                 <h1 className="profile-name">{user?.username}</h1>
                 <p className="profile-handle">@{user?.username}</p>
-                {user?.biografia && (
-                  <p className="profile-bio">{user.biografia}</p>
-                )}
                 <div className="profile-stats">
                   <div className="stat">
                     <strong>{user?.siguiendo?.length || 0}</strong>
@@ -315,6 +319,27 @@ const Profile = () => {
             </div>
           </div>
         </div>
+
+        {/* Biografía fuera del área naranja */}
+        {user?.bio ? (
+          <div className="profile-bio-section">
+            <div className="profile-bio-container">
+              <div className="bio-icon">📝</div>
+              <p className="profile-bio">{user.bio}</p>
+            </div>
+          </div>
+        ) : isOwnProfile && (
+          <div className="profile-bio-section">
+            <div className="profile-bio-empty">
+              <p 
+                className="bio-prompt"
+                onClick={() => navigate('/settings')}
+              >
+                ✨ <span>Agrega una biografía</span> para que otros gamers te conozcan mejor
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="profile-tabs">
           <button 

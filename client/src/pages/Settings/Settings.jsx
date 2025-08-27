@@ -143,7 +143,8 @@ const Settings = () => {
           id: updatedUser._id,
           username: updatedUser.username,
           email: updatedUser.email,
-          avatar: updatedUser.avatar
+          avatar: updatedUser.avatar,
+          bio: updatedUser.bio
         };
         updateUser(newUserData);
         
@@ -327,20 +328,30 @@ const Settings = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="bio">Biografía</label>
+                <label htmlFor="bio">
+                  📝 Biografía
+                </label>
                 <textarea
                   id="bio"
                   name="bio"
                   value={formData.bio}
                   onChange={handleInputChange}
-                  placeholder="Cuéntanos sobre ti..."
-                  className="textarea-field"
+                  placeholder="Cuéntanos sobre ti, tus juegos favoritos, tu experiencia gaming..."
+                  className="textarea-field bio-field"
                   maxLength={200}
                   rows={4}
                 />
-                <small className="form-help">
-                  Máximo 200 caracteres. {200 - formData.bio.length} restantes.
-                </small>
+                <div className="bio-help">
+                  <small className="form-help">
+                    💡 Comparte un poco sobre ti para que otros gamers te conozcan mejor.
+                  </small>
+                  <span className={`character-count ${
+                    formData.bio.length > 180 ? 'danger' : 
+                    formData.bio.length > 150 ? 'warning' : ''
+                  }`}>
+                    {formData.bio.length}/200
+                  </span>
+                </div>
               </div>
 
               <div className="form-actions">

@@ -38,7 +38,9 @@ const usuarioController = {
         usuario: {
           id: nuevoUsuario._id,
           username: nuevoUsuario.username,
-          email: nuevoUsuario.email
+          email: nuevoUsuario.email,
+          avatar: nuevoUsuario.avatar,
+          bio: nuevoUsuario.bio
         }
       });
     } catch (error) {
@@ -72,7 +74,9 @@ const usuarioController = {
         usuario: {
           id: usuario._id,
           username: usuario.username,
-          email: usuario.email
+          email: usuario.email,
+          avatar: usuario.avatar,
+          bio: usuario.bio
         }
       });
     } catch (error) {

@@ -40,6 +40,7 @@ const Sidebar = () => {
     { icon: '📝', label: 'Mis Notas', path: '/notes', key: 'notes' },
     { icon: '👤', label: 'Perfil', path: `/profile/${user.id}`, key: 'profile' },
     { icon: '⚙️', label: 'Configuración', path: '/settings', key: 'settings' }
+
   ], [user.id, unreadCount]);
 
   const handleLogout = useCallback(() => {
@@ -47,6 +48,17 @@ const Sidebar = () => {
     localStorage.removeItem('user');
     window.location.href = '/login';
   }, []);
+
+  const renderLogoutForMobile = useCallback(() => (
+    <button
+      key="logout-mobile"
+      onClick={handleLogout}
+      className="menu-item logout-mobile"
+    >
+      <span className="menu-icon">🚪</span>
+      <span className="menu-label">Salir</span>
+    </button>
+  ), [handleLogout]);
 
   const renderMenuItem = useCallback((item) => (
     <Link
@@ -62,6 +74,8 @@ const Sidebar = () => {
     </Link>
   ), [location.pathname]);
 
+  console.log(user)
+
   return (
     <nav className="sidebar">
       <div className="sidebar-header">
@@ -70,25 +84,39 @@ const Sidebar = () => {
       
       <div className="sidebar-menu">
         {menuItems.map(renderMenuItem)}
+        {/* Botón de logout solo visible en móviles */}
+        <div className="mobile-logout">
+          {renderLogoutForMobile()}
+        </div>
       </div>
 
       <div className="sidebar-footer">
         <div className="user-profile">
           <div className="user-avatar">
             {user?.avatar ? (
-              <img src={user.avatar} alt={user.username} />
-            ) : (
-              <div className="avatar-placeholder">
-                {user?.username?.charAt(0).toUpperCase()}
-              </div>
-            )}
+              <img 
+                src={user.avatar.startsWith('http') ? user.avatar : `http://localhost:5002${user.avatar}`} 
+                alt={user.username}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div 
+              className="avatar-placeholder" 
+              style={{ display: user?.avatar ? 'none' : 'flex' }}
+            >
+              {user?.username?.charAt(0).toUpperCase()}
+            </div>
           </div>
           <div className="user-details">
             <div className="username">@{user?.username}</div>
           </div>
         </div>
         <button onClick={handleLogout} className="logout-btn">
-          Cerrar Sesión
+          <span className="logout-icon">🚪</span>
+          <span className="logout-label">Cerrar Sesión</span>
         </button>
       </div>
     </nav>

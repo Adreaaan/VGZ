@@ -98,6 +98,59 @@
   border-top: 1px solid #2d3748;
 }
 
+.logout-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  background: transparent;
+  border: none;
+  color: #a0aec0;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 12px;
+  font-size: 1rem;
+}
+
+.logout-btn:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.logout-btn:active {
+  background-color: rgba(239, 68, 68, 0.2);
+  transform: translateY(1px);
+}
+
+.logout-icon {
+  font-size: 1.25rem;
+  margin-right: 16px;
+  width: 24px;
+  text-align: center;
+}
+
+.logout-label {
+  font-size: 1rem;
+}
+
+.mobile-logout {
+  display: none;
+}
+
+.logout-mobile {
+  background: transparent !important;
+  border: none;
+  width: auto;
+  margin: 0;
+}
+
+.logout-mobile:hover {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  color: #ef4444;
+}
+
 .user-info {
   display: flex;
   align-items: center;
@@ -192,6 +245,10 @@
     display: none;
   }
   
+  .logout-label {
+    display: none;
+  }
+  
   .brand-link {
     justify-content: center;
   }
@@ -250,6 +307,28 @@
   }
   
   .menu-label {
+    display: block;
+    font-size: 0.75rem;
+  }
+  
+  .mobile-logout {
+    display: block;
+  }
+  
+  .logout-mobile {
+    flex-direction: column;
+    padding: 8px 12px;
+    margin: 0;
+    min-width: auto;
+  }
+  
+  .logout-mobile .menu-icon {
+    margin-right: 0;
+    margin-bottom: 4px;
+    font-size: 1.125rem;
+  }
+  
+  .logout-mobile .menu-label {
     display: block;
     font-size: 0.75rem;
   }
