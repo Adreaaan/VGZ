@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Layout/Sidebar';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
 import './Notifications.css';
 
 const Notifications = () => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -79,6 +81,19 @@ const Notifications = () => {
     fetchNotifications();
   }, [fetchNotifications]);
 
+  const handleNotificationClick = useCallback((notification) => {
+    // Marcar como leída si no lo está
+    console.log(notification);
+    if (!notification.leida) {
+      markAsRead(notification._id);
+    }
+    
+    // Navegar al perfil del usuario que generó la notificación
+    if (notification.emisor) {
+      navigate(`/profile/${notification.emisor._id}`);
+    }
+  }, [navigate]);
+
   const getNotificationIcon = (tipo) => {
     switch (tipo) {
       case 'follow': return '👤';
@@ -103,6 +118,40 @@ const Notifications = () => {
     return `${days}d`;
   };
 
+  const renderNotificationItem = useCallback((notification) => (
+    <div 
+      key={notification._id} 
+      className={`notification-item ${!notification.leida ? 'unread' : ''}`}
+      onClick={() => handleNotificationClick(notification)}
+      style={{ cursor: 'pointer' }}
+    >
+      <div className="notification-icon">
+        {getNotificationIcon(notification.tipo)}
+      </div>
+      
+      <div className="notification-content">
+        <div className="notification-avatar">
+          {notification.emisor?.avatar ? (
+            <img src={notification.emisor.avatar} alt={notification.emisor.username} />
+          ) : (
+            <div className="avatar-placeholder">
+              {notification.emisor?.username?.charAt(0).toUpperCase()}
+            </div>
+          )}
+        </div>
+        
+        <div className="notification-text">
+          <p>{notification.mensaje}</p>
+          <span className="notification-time">
+            {formatTime(notification.createdAt)}
+          </span>
+        </div>
+      </div>
+      
+      {!notification.leida && <div className="unread-dot"></div>}
+    </div>
+  ), [handleNotificationClick]);
+
   return (
     <div className="notifications-container">
       <Sidebar />
@@ -125,38 +174,7 @@ const Notifications = () => {
         ) : (
           <div className="notifications-list">
             {notifications.length > 0 ? (
-              notifications.map(notification => (
-                <div
-                  key={notification._id}
-                  className={`notification-item ${!notification.leida ? 'unread' : ''}`}
-                  onClick={() => !notification.leida && markAsRead(notification._id)}
-                >
-                  <div className="notification-icon">
-                    {getNotificationIcon(notification.tipo)}
-                  </div>
-                  
-                  <div className="notification-content">
-                    <div className="notification-avatar">
-                      {notification.emisor?.avatar ? (
-                        <img src={notification.emisor.avatar} alt={notification.emisor.username} />
-                      ) : (
-                        <div className="avatar-placeholder">
-                          {notification.emisor?.username?.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="notification-text">
-                      <p>{notification.mensaje}</p>
-                      <span className="notification-time">
-                        {formatTime(notification.createdAt)}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {!notification.leida && <div className="unread-dot"></div>}
-                </div>
-              ))
+              notifications.map(notification => renderNotificationItem(notification))
             ) : (
               <div className="empty-notifications">
                 <div className="empty-icon">🔔</div>

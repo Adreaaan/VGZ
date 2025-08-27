@@ -154,9 +154,8 @@
 
 .post-actions {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
-  margin: 12px 0 0 120px;
   padding: 0;
   border-top: none;
   gap: 100px;
@@ -367,10 +366,6 @@
   .post-content {
     margin-left: 48px;
   }
-  
-  .post-actions {
-    margin-left: 48px;
-    max-width: 100%;
-  }
+
 }
 
