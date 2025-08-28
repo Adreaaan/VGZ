@@ -1,4 +1,4 @@
-const Notification = require('../models/Notification');
+const Notification = require('../models/Notificacion');
 
 const notificationController = {
   // Obtener notificaciones del usuario

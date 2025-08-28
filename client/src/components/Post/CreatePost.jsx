@@ -11,9 +11,12 @@ const CreatePost = ({ onPostCreated }) => {
   const [loading, setLoading] = useState(false);
   const [showRatingConflict, setShowRatingConflict] = useState(false);
   const [conflictData, setConflictData] = useState(null);
+  const [error, setError] = useState('');
+
+  const MAX_CARACTERES = 500;
 
   const isFormValid = useMemo(() => {
-    return contenido.trim() && selectedGame && !loading;
+    return contenido.trim() && selectedGame && !loading && contenido.length <= MAX_CARACTERES;
   }, [contenido, selectedGame, loading]);
 
   const searchGames = useCallback(async (searchTerm) => {
@@ -60,8 +63,24 @@ const CreatePost = ({ onPostCreated }) => {
     setValoracion('');
   }, []);
 
+  const handleContenidoChange = useCallback((e) => {
+    const newContenido = e.target.value;
+    setContenido(newContenido);
+    
+    if (newContenido.length > MAX_CARACTERES) {
+      setError(`El contenido no puede exceder los ${MAX_CARACTERES} caracteres`);
+    } else {
+      setError('');
+    }
+  }, []);
+
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+    
+    if (contenido.length > MAX_CARACTERES) {
+      setError(`El contenido no puede exceder los ${MAX_CARACTERES} caracteres`);
+      return;
+    }
     
     if (!isFormValid) {
       alert('Por favor, añade contenido y selecciona un videojuego');
@@ -69,6 +88,7 @@ const CreatePost = ({ onPostCreated }) => {
     }
 
     setLoading(true);
+    setError('');
 
     try {
       const token = localStorage.getItem('token');
@@ -116,11 +136,17 @@ const CreatePost = ({ onPostCreated }) => {
         setValoracion('');
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.mensaje || 'Error al crear el post');
+        // Mostrar errores específicos del servidor
+        if (errorData.errores && Array.isArray(errorData.errores)) {
+          const errorMessages = errorData.errores.map(err => err.message).join('. ');
+          setError(errorMessages);
+        } else {
+          setError(errorData.mensaje || 'Error al crear el post');
+        }
       }
     } catch (error) {
       console.error('Error creando post:', error);
-      alert('Error al crear el post: ' + error.message);
+      setError('Error de conexión. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -221,11 +247,22 @@ const CreatePost = ({ onPostCreated }) => {
           <textarea
             placeholder="Comparte tu experiencia gaming..."
             value={contenido}
-            onChange={(e) => setContenido(e.target.value)}
-            className="post-textarea"
+            onChange={handleContenidoChange}
+            className={`post-textarea ${contenido.length > MAX_CARACTERES ? 'error' : ''}`}
             rows="3"
             required
           />
+          <div className="character-count">
+            <span className={contenido.length > MAX_CARACTERES ? 'over-limit' : ''}>
+              {contenido.length}/{MAX_CARACTERES}
+            </span>
+          </div>
+          {error && (
+            <div className="error-message">
+              <span className="error-icon">⚠️</span>
+              {error}
+            </div>
+          )}
         </div>
 
         <div className="post-options">

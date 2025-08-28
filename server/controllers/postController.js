@@ -1,5 +1,5 @@
 const { Post, Usuario, Videojuego } = require('../models');
-const { crearNotificacion } = require('./notificationController');
+const { crearNotificacion } = require('./notificacionController');
 
 const postController = {
   // Crear post o comentario
@@ -278,7 +278,7 @@ const postController = {
       // Si se dio like (no se quitó), crear notificación
       if (liked && post.autor.toString() !== req.userId) {
         const usuario = await Usuario.findById(req.userId);
-        const { crearNotificacion } = require('./notificationController');
+        const { crearNotificacion } = require('./notificacionController');
         await crearNotificacion(
           post.autor,
           req.userId,

@@ -95,6 +95,12 @@
   align-items: flex-start;
 }
 
+.reply-textarea-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .user-avatar-small {
   width: 40px;
   height: 40px;
@@ -115,7 +121,6 @@
 }
 
 .reply-textarea {
-  flex: 1;
   background: transparent;
   border: none;
   color: #ffffff;
@@ -124,11 +129,46 @@
   resize: none;
   font-family: inherit;
   line-height: 1.4;
+  width: 100%;
+}
+
+.reply-textarea.error {
+  color: #feb2b2;
 }
 
 .reply-textarea::placeholder {
   color: #71767b;
   font-size: 1.25rem;
+}
+
+.character-count {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: #a0aec0;
+}
+
+.character-count .over-limit {
+  color: #e53e3e;
+  font-weight: 600;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(229, 62, 62, 0.1);
+  border: 1px solid rgba(229, 62, 62, 0.3);
+  border-radius: 6px;
+  color: #feb2b2;
+  font-size: 0.85rem;
+}
+
+.error-icon {
+  font-size: 1rem;
 }
 
 .reply-actions {

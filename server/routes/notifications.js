@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const notificationController = require('../controllers/notificationController');
+const notificationController = require('../controllers/notificacionController');
 const { auth } = require('../middleware');
 
 // Rutas de notificaciones

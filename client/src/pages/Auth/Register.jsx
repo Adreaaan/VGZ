@@ -48,9 +48,15 @@ const Register = () => {
       if (response.ok) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.usuario));
-        window.location.href = '/dashboard';
+        window.location.href = '/';
       } else {
-        setError(data.mensaje || 'Error al registrarse');
+        // Mostrar errores específicos del servidor
+        if (data.errores && Array.isArray(data.errores)) {
+          const errorMessages = data.errores.map(err => err.message).join('. ');
+          setError(errorMessages);
+        } else {
+          setError(data.mensaje || 'Error al registrarse');
+        }
       }
     } catch (error) {
       setError('Error de conexión. Inténtalo de nuevo.');

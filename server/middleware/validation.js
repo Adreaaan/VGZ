@@ -30,6 +30,16 @@ const validateUserRegistration = [
         field: 'password', 
         message: 'La contraseña debe tener al menos 6 caracteres' 
       });
+    } else if (password.length > 50) {
+      errors.push({ 
+        field: 'password', 
+        message: 'La contraseña no puede exceder los 50 caracteres' 
+      });
+    } else if (!/(?=.*[a-zA-Z])/.test(password)) {
+      errors.push({ 
+        field: 'password', 
+        message: 'La contraseña debe contener al menos una letra' 
+      });
     }
 
     if (errors.length > 0) {
@@ -73,8 +83,75 @@ const validateUserLogin = [
   }
 ];
 
-const validatePost = [(req, res, next) => next()];
-const validateComment = [(req, res, next) => next()];
+const validatePost = [
+  (req, res, next) => {
+    const { contenido, videojuego, rating } = req.body;
+    const errors = [];
+
+    if (!contenido || contenido.trim().length === 0) {
+      errors.push({ 
+        field: 'contenido', 
+        message: 'El contenido es requerido' 
+      });
+    } else if (contenido.length > 500) {
+      errors.push({ 
+        field: 'contenido', 
+        message: 'El contenido no puede exceder los 500 caracteres' 
+      });
+    }
+
+    if (!videojuego) {
+      errors.push({ 
+        field: 'videojuego', 
+        message: 'Debe seleccionar un videojuego' 
+      });
+    }
+
+    if (rating && (rating < 1 || rating > 5)) {
+      errors.push({ 
+        field: 'rating', 
+        message: 'La calificación debe estar entre 1 y 5' 
+      });
+    }
+
+    if (errors.length > 0) {
+      return res.status(400).json({ 
+        mensaje: 'Errores de validación', 
+        errores: errors 
+      });
+    }
+
+    next();
+  }
+];
+
+const validateComment = [
+  (req, res, next) => {
+    const { contenido } = req.body;
+    const errors = [];
+
+    if (!contenido || contenido.trim().length === 0) {
+      errors.push({ 
+        field: 'contenido', 
+        message: 'El comentario no puede estar vacío' 
+      });
+    } else if (contenido.length > 300) {
+      errors.push({ 
+        field: 'contenido', 
+        message: 'El comentario no puede exceder los 300 caracteres' 
+      });
+    }
+
+    if (errors.length > 0) {
+      return res.status(400).json({ 
+        mensaje: 'Errores de validación', 
+        errores: errors 
+      });
+    }
+
+    next();
+  }
+];
 const validateVideojuego = [(req, res, next) => next()];
 const validateNota = [(req, res, next) => next()];
 

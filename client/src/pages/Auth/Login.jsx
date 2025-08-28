@@ -36,8 +36,9 @@ const Login = () => {
       if (response.ok) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.usuario));
-        window.location.href = '/dashboard';
+        window.location.href = '/';
       } else {
+        // Mostrar mensaje específico del servidor
         setError(data.mensaje || 'Error al iniciar sesión');
       }
     } catch (error) {

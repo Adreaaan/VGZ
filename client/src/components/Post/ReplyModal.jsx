@@ -6,27 +6,48 @@ import './ReplyModal.css';
 const ReplyModal = ({ isOpen, onClose, post, onReplySubmit, onGameClick }) => {
   const [replyText, setReplyText] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const MAX_CARACTERES = 300; // Para comentarios usamos 300 caracteres
 
   useEffect(() => {
     if (isOpen) {
       setReplyText('');
       setLoading(false);
+      setError('');
     }
   }, [isOpen]);
+
+  const handleReplyTextChange = useCallback((e) => {
+    const newText = e.target.value;
+    setReplyText(newText);
+    
+    if (newText.length > MAX_CARACTERES) {
+      setError(`El comentario no puede exceder los ${MAX_CARACTERES} caracteres`);
+    } else {
+      setError('');
+    }
+  }, []);
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     
     if (!replyText.trim() || loading) return;
 
+    if (replyText.length > MAX_CARACTERES) {
+      setError(`El comentario no puede exceder los ${MAX_CARACTERES} caracteres`);
+      return;
+    }
+
     setLoading(true);
+    setError('');
     
     try {
       await onReplySubmit(replyText.trim());
       handleClose();
     } catch (error) {
       console.error('Error submitting reply:', error);
-      alert('Error al enviar la respuesta');
+      setError('Error al enviar la respuesta. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -76,20 +97,33 @@ const ReplyModal = ({ isOpen, onClose, post, onReplySubmit, onGameClick }) => {
                     {JSON.parse(localStorage.getItem('user') || '{}').username?.charAt(0).toUpperCase()}
                   </div>
                 </div>
-                <textarea
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  placeholder="Escribe tu respuesta..."
-                  className="reply-textarea"
-                  rows="3"
-                  disabled={loading}
-                />
+                <div className="reply-textarea-container">
+                  <textarea
+                    value={replyText}
+                    onChange={handleReplyTextChange}
+                    placeholder="Escribe tu respuesta..."
+                    className={`reply-textarea ${replyText.length > MAX_CARACTERES ? 'error' : ''}`}
+                    rows="3"
+                    disabled={loading}
+                  />
+                  <div className="character-count">
+                    <span className={replyText.length > MAX_CARACTERES ? 'over-limit' : ''}>
+                      {replyText.length}/{MAX_CARACTERES}
+                    </span>
+                  </div>
+                  {error && (
+                    <div className="error-message">
+                      <span className="error-icon">⚠️</span>
+                      {error}
+                    </div>
+                  )}
+                </div>
               </div>
               
               <div className="reply-actions">
                 <button 
                   type="submit" 
-                  disabled={!replyText.trim() || loading}
+                  disabled={!replyText.trim() || loading || replyText.length > MAX_CARACTERES}
                   className="reply-submit-btn"
                 >
                   {loading ? 'Enviando...' : 'Responder'}

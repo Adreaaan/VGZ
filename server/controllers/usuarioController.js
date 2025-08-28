@@ -8,12 +8,20 @@ const usuarioController = {
     try {
       const { username, email, password } = req.body;
       
-      const usuarioExistente = await Usuario.findOne({
-        $or: [{ email }, { username }]
-      });
+      // Verificar si el email ya existe
+      const usuarioConEmail = await Usuario.findOne({ email });
+      if (usuarioConEmail) {
+        return res.status(400).json({ 
+          mensaje: 'Este email ya está en uso. Por favor, usa otro email.' 
+        });
+      }
       
-      if (usuarioExistente) {
-        return res.status(400).json({ mensaje: 'Usuario o email ya existe' });
+      // Verificar si el username ya existe
+      const usuarioConUsername = await Usuario.findOne({ username });
+      if (usuarioConUsername) {
+        return res.status(400).json({ 
+          mensaje: 'Este nombre de usuario ya está en uso. Por favor, elige otro.' 
+        });
       }
       
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -55,12 +63,16 @@ const usuarioController = {
       
       const usuario = await Usuario.findOne({ email });
       if (!usuario) {
-        return res.status(400).json({ mensaje: 'Credenciales inválidas' });
+        return res.status(400).json({ 
+          mensaje: 'No existe una cuenta con este email. Verifica tu email o regístrate.' 
+        });
       }
       
       const passwordValido = await bcrypt.compare(password, usuario.password);
       if (!passwordValido) {
-        return res.status(400).json({ mensaje: 'Credenciales inválidas' });
+        return res.status(400).json({ 
+          mensaje: 'Contraseña incorrecta. Verifica tu contraseña e intenta de nuevo.' 
+        });
       }
       
       const token = jwt.sign(
@@ -129,7 +141,7 @@ const usuarioController = {
       await usuarioASeguir.save();
 
       // Crear notificación
-      const { crearNotificacion } = require('./notificationController');
+      const { crearNotificacion } = require('./notificacionController');
       await crearNotificacion(
         usuarioId,
         req.userId,
