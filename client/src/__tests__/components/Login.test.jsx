@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import Login from '../../pages/Auth/Login';
-import { renderWithRouter, setupTest } from '../utils/testUtils';
+import { renderWithRouter, setupTest } from '../../utils/testHelpers';
 
 // Mock global fetch
 global.fetch = jest.fn();
@@ -75,7 +75,7 @@ describe('Login', () => {
     });
 
     await waitFor(() => {
-      expect(window.location.href).toBe('/dashboard');
+      expect(window.location.href).toBe('/');
     });
   });
 

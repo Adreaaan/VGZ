@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { useApi } from '../../hooks/useApi';
-import { setupTest, mockLocalStorage } from '../utils/testUtils';
+import { setupTest, mockLocalStorage } from '../../utils/testHelpers';
 
 // Mock global fetch
 global.fetch = jest.fn();

@@ -79,9 +79,9 @@ const videojuegoController = {
   // Obtener videojuegos con filtros
   obtenerVideojuegos: async (req, res) => {
     try {
-      const { page = 1, limit = 20, sortBy = 'fechaLanzamiento', order = 'desc', genre, developer } = req.query;
+      const { page = 1, limit = 20, sortBy = 'fechaLanzamiento', order = 'desc', genre, developer, trending = false } = req.query;
       
-      console.log('Query params:', { page, limit, sortBy, order, genre, developer });
+      console.log('Query params:', { page, limit, sortBy, order, genre, developer, trending });
       
       const query = {};
       if (genre && genre !== '') {
@@ -93,10 +93,62 @@ const videojuegoController = {
       
       console.log('MongoDB query:', query);
       
-      const videojuegos = await Videojuego.find(query)
-        .sort({ [sortBy]: order === 'desc' ? -1 : 1 })
-        .limit(limit * 1)
-        .skip((page - 1) * limit);
+      let videojuegos;
+      
+      // Si se solicita trending, usar agregación para ordenar por popularidad
+      if (trending === 'true') {
+        console.log('Fetching trending games with aggregation...');
+        try {
+          // Primero intentar obtener algunos posts para verificar la conexión
+          const Post = require('../models/Post');
+          const samplePosts = await Post.find().limit(1);
+          console.log('Sample posts found:', samplePosts.length);
+          
+          videojuegos = await Videojuego.aggregate([
+            { $match: query },
+            {
+              $lookup: {
+                from: 'posts', // Nombre de la colección en minúscula
+                localField: '_id',
+                foreignField: 'videojuego',
+                as: 'postCount'
+              }
+            },
+            {
+              $addFields: {
+                // Calcular score de popularidad simple
+                popularityScore: { $size: '$postCount' }
+              }
+            },
+            { $sort: { popularityScore: -1, fechaLanzamiento: -1 } },
+            { $skip: (page - 1) * limit },
+            { $limit: parseInt(limit) },
+            { $project: { postCount: 0 } } // Remover posts del resultado final
+          ]);
+          console.log('Trending games found:', videojuegos.length);
+          
+          // Si no hay resultados con la agregación, intentar query simple
+          if (videojuegos.length === 0) {
+            console.log('No trending results, falling back to normal query');
+            videojuegos = await Videojuego.find(query)
+              .sort({ fechaLanzamiento: -1 })
+              .limit(parseInt(limit))
+              .skip((page - 1) * limit);
+          }
+        } catch (aggregationError) {
+          console.error('Aggregation failed, falling back to normal query:', aggregationError);
+          // Si la agregación falla, usar query normal
+          videojuegos = await Videojuego.find(query)
+            .sort({ fechaLanzamiento: -1 })
+            .limit(parseInt(limit))
+            .skip((page - 1) * limit);
+        }
+      } else {
+        videojuegos = await Videojuego.find(query)
+          .sort({ [sortBy]: order === 'desc' ? -1 : 1 })
+          .limit(limit * 1)
+          .skip((page - 1) * limit);
+      }
       
       console.log('Found videojuegos:', videojuegos.length);
       
@@ -145,15 +197,19 @@ const videojuegoController = {
               }
             });
             
+            // Verificar si es un documento de Mongoose o un objeto plano de agregación
+            const videojuegoObj = videojuego.toObject ? videojuego.toObject() : videojuego;
+            
             return {
-              ...videojuego.toObject(),
+              ...videojuegoObj,
               valoraciones
             };
           } catch (aggregationError) {
             console.error('Error en agregación para videojuego:', videojuego._id, aggregationError);
             // Si falla la agregación, devolver el videojuego con valoraciones vacías
+            const videojuegoObj = videojuego.toObject ? videojuego.toObject() : videojuego;
             return {
-              ...videojuego.toObject(),
+              ...videojuegoObj,
               valoraciones: { loRecomiendo: 0, noRecomiendo: 0, meh: 0 }
             };
           }

@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { useAuth } from '../../hooks/useAuth';
-import { setupTest, mockLocalStorage } from '../utils/testUtils';
+import { setupTest, mockLocalStorage } from '../../utils/testHelpers';
 
 describe('useAuth', () => {
   beforeEach(() => {

@@ -11,7 +11,7 @@ const TrendingGames = ({ onGameClick }) => {
 
   const fetchTrendingGames = async () => {
     try {
-      const response = await fetch('/api/videojuegos?limit=5', {
+      const response = await fetch('/api/videojuegos?limit=5&trending=true', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
